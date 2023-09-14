@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+	<input>
+		<net-file value="/home/ssx/project/mysumo/nets/single-intersection_2way/single-intersection.net.xml"/>
+		<route-files value="/home/ssx/project/mysumo/nets/single-intersection_2way/single-intersection-vhvh.net.xml"/>
+	</input>
+</configuration>

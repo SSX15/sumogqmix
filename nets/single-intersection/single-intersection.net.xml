@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2023-05-09 10:28:57 by Eclipse SUMO netedit Version v1_13_0+1300-cb922bbf806
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+
+    <input>
+        <sumo-nets-file value="nets/single-intersection/single-intersection.nets.xml"/>
+    </input>
+
+    <output>
+        <output-file value="nets/single-intersection/single-intersection.nets.xml"/>
+    </output>
+
+    <processing>
+        <geometry.min-radius.fix.railways value="false"/>
+        <geometry.max-grade.fix value="false"/>
+        <offset.disable-normalization value="true"/>
+        <lefthand value="false"/>
+    </processing>
+
+    <junctions>
+        <no-turnarounds value="true"/>
+        <junctions.corner-detail value="0"/>
+        <junctions.limit-turn-speed value="-1"/>
+        <rectangular-lane-cut value="false"/>
+    </junctions>
+
+    <pedestrian>
+        <walkingareas value="false"/>
+    </pedestrian>
+
+</configuration>
+-->
+
+<net version="1.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+
+    <location netOffset="150.00,150.00" convBoundary="0.00,0.00,300.00,300.00" origBoundary="-150.00,-150.00,150.00,150.00" projParameter="!"/>
+
+    <edge id=":t_0" function="internal">
+        <lane id=":t_0_0" index="0" speed="13.90" length="14.40" shape="145.20,154.00 145.20,139.60"/>
+        <lane id=":t_0_1" index="1" speed="13.90" length="14.40" shape="148.40,154.00 148.40,139.60"/>
+    </edge>
+    <edge id=":t_2" function="internal">
+        <lane id=":t_2_0" index="0" speed="13.90" length="14.40" shape="139.60,145.20 154.00,145.20"/>
+        <lane id=":t_2_1" index="1" speed="13.90" length="14.40" shape="139.60,148.40 154.00,148.40"/>
+    </edge>
+
+    <edge id="n_t" from="n" to="t" priority="-1">
+        <lane id="n_t_0" index="0" speed="13.90" length="146.00" shape="145.20,300.00 145.20,154.00"/>
+        <lane id="n_t_1" index="1" speed="13.90" length="146.00" shape="148.40,300.00 148.40,154.00"/>
+    </edge>
+    <edge id="t_e" from="t" to="e" priority="-1">
+        <lane id="t_e_0" index="0" speed="13.90" length="146.00" shape="154.00,145.20 300.00,145.20"/>
+        <lane id="t_e_1" index="1" speed="13.90" length="146.00" shape="154.00,148.40 300.00,148.40"/>
+    </edge>
+    <edge id="t_s" from="t" to="s" priority="-1">
+        <lane id="t_s_0" index="0" speed="13.90" length="139.60" shape="145.20,139.60 145.20,0.00"/>
+        <lane id="t_s_1" index="1" speed="13.90" length="139.60" shape="148.40,139.60 148.40,0.00"/>
+    </edge>
+    <edge id="w_t" from="w" to="t" priority="-1">
+        <lane id="w_t_0" index="0" speed="13.90" length="139.60" shape="0.00,145.20 139.60,145.20"/>
+        <lane id="w_t_1" index="1" speed="13.90" length="139.60" shape="0.00,148.40 139.60,148.40"/>
+    </edge>
+
+    <tlLogic id="t" type="static" programID="0" offset="0">
+        <phase duration="42" state="GGrr"/>
+        <phase duration="2"  state="yyrr"/>
+        <phase duration="42" state="rrGG"/>
+        <phase duration="2"  state="rryy"/>
+    </tlLogic>
+
+    <junction id="e" type="dead_end" x="300.00" y="150.00" incLanes="t_e_0 t_e_1" intLanes="" shape="300.00,143.60 300.00,150.00"/>
+    <junction id="n" type="dead_end" x="150.00" y="300.00" incLanes="" intLanes="" shape="150.00,300.00 143.60,300.00"/>
+    <junction id="s" type="dead_end" x="150.00" y="0.00" incLanes="t_s_0 t_s_1" intLanes="" shape="143.60,0.00 150.00,0.00"/>
+    <junction id="t" type="traffic_light" x="150.00" y="150.00" incLanes="n_t_0 n_t_1 w_t_0 w_t_1" intLanes=":t_0_0 :t_0_1 :t_2_0 :t_2_1" shape="143.60,154.00 150.00,154.00 154.00,150.00 154.00,143.60 150.00,139.60 143.60,139.60 139.60,143.60 139.60,150.00">
+        <request index="0" response="1100" foes="1100" cont="0"/>
+        <request index="1" response="1100" foes="1100" cont="0"/>
+        <request index="2" response="0000" foes="0011" cont="0"/>
+        <request index="3" response="0000" foes="0011" cont="0"/>
+    </junction>
+    <junction id="w" type="dead_end" x="0.00" y="150.00" incLanes="" intLanes="" shape="0.00,150.00 0.00,143.60"/>
+
+    <connection from="n_t" to="t_s" fromLane="0" toLane="0" via=":t_0_0" tl="t" linkIndex="0" dir="s" state="o"/>
+    <connection from="n_t" to="t_s" fromLane="1" toLane="1" via=":t_0_1" tl="t" linkIndex="1" dir="s" state="o"/>
+    <connection from="w_t" to="t_e" fromLane="0" toLane="0" via=":t_2_0" tl="t" linkIndex="2" dir="s" state="O"/>
+    <connection from="w_t" to="t_e" fromLane="1" toLane="1" via=":t_2_1" tl="t" linkIndex="3" dir="s" state="O"/>
+
+    <connection from=":t_0" to="t_s" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":t_0" to="t_s" fromLane="1" toLane="1" dir="s" state="M"/>
+    <connection from=":t_2" to="t_e" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":t_2" to="t_e" fromLane="1" toLane="1" dir="s" state="M"/>
+
+</net>
