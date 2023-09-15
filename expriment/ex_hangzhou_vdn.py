@@ -20,11 +20,10 @@ from env.env_MAL import MALenv
 from agent.agent import Agent
 
 if __name__ == '__main__':
-    prs = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                  description="""DQN grids5_5""")
+    prs = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     prs.add_argument("-route", dest="route", type=str, default='../nets/hangzhou/hangzhou_4x4_gudang_18041610_1h.rou.xml')
-    prs.add_argument("-net", dest="net",default='../nets/hangzhou/hangzhou_4x4_gudang_18041610_1h.net.xml')
+    prs.add_argument("-net", dest="net", default='../nets/hangzhou/hangzhou_4x4_gudang_18041610_1h.net.xml')
     prs.add_argument("-lr", dest="lr", default=0.0005)
     prs.add_argument("-gamma", dest="gamma", default=0.99)
     prs.add_argument("-gradient_step", dest="gradient_step", default=5)
@@ -37,6 +36,7 @@ if __name__ == '__main__':
     prs.add_argument("-batch_size", dest="batch_size", default=32)
     prs.add_argument("-delta_time", dest="delta_time", default=5)
     prs.add_argument("-buffer_size", dest="buffer_size", default=3600)
+    prs.add_argument("-start_size", dest="start_size", default=3600)
 
     args = prs.parse_args()
     exprimenttime = str(datetime.now()).split('.')[0]
@@ -54,7 +54,8 @@ if __name__ == '__main__':
     args.max_green = 60
     args.num_seconds = 3600
     args.csv_name = csv_name
-    args.epsilon_init = 0.5
+    args.epsilon_init = 0
+    args.yellow_time = 3
     with open(param_file + 'args.json', 'w') as file:
         json.dump(vars(args), file)
 
