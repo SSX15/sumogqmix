@@ -66,6 +66,7 @@ class Agent:
             batch = self.merge_batch(batch)
             a = batch['a'].to(self.device)
             r = batch['r'].to(self.device).squeeze(2)
+            r = torch.sum(r, dim=1).reshape(-1, 1)
 
             #input, input_n = [], []
             input = batch['s']
