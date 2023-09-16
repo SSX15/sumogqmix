@@ -20,8 +20,7 @@ from env.env_MAL import MALenv
 from agent.agent import Agent
 
 if __name__ == '__main__':
-    prs = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                  description="""DQN grids5_5""")
+    prs = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     prs.add_argument("-route", dest="route", type=str, default='../nets/hangzhou/hangzhou_4x4_gudang_18041610_1h.rou.xml')
     prs.add_argument("-net", dest="net",default='../nets/hangzhou/hangzhou_4x4_gudang_18041610_1h.net.xml')
@@ -57,7 +56,7 @@ if __name__ == '__main__':
     args.num_seconds = 3600
     args.csv_name = csv_name
     args.epsilon_init = 0
-    args.yellow = 0
+    args.yellow_time = 0
     with open(param_file + 'args.json', 'w') as file:
         json.dump(vars(args), file)
 

@@ -51,8 +51,6 @@ class Agent:
 
 
     def train(self):
-        #if (self.buffer.len()) < self.buffer_size:
-            #return
         if (self.buffer.len()) < self.start_size:
             return 
         losses = []

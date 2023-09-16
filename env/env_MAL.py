@@ -44,7 +44,7 @@ class MALenv(gymnasium.Env):
             self.sumo_binary = sumolib.checkBinary('sumo')
         self.min_green = args.min_green
         self.max_green = args.max_green
-        self.yellow_time = args.yellow 
+        self.yellow_time = args.yellow_time
         self.begin_time = begin_time
         self.sim_max_time = args.num_seconds
         self.delta_time = args.delta_time
@@ -90,12 +90,6 @@ class MALenv(gymnasium.Env):
         self.mapping['2'] = ['2j3', '2j4']
         self.mapping['3'] = ['3j2', '3j3']
         self.cur_phase = {a_id: 0 for a_id in self.agent_id}
-        self.phase_order = {0: 1,
-                             1: 2,
-                             2: 3,
-                             3: 4,
-                             4: 5,
-                             5: 0}
 
     def start(self):
         xml_file = f"../output/xml/{self.run}.xml"
