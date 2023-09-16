@@ -2,12 +2,9 @@ import json
 import os, sys, argparse
 import time
 from datetime import datetime
-#from nets.network.multinet import MultiLightNet
-#from utils.gennetcfg import Networkfile
-#from nets.params.params import NetParams
 import pdb
 
-#os.environ['SUMO_HOME'] = '/home/ssx/sumo'
+os.environ['SUMO_HOME'] = '/home/ssx/sumo'
 os.environ['LIBSUMO_AS_TRACI'] = '1'
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
@@ -17,7 +14,6 @@ if 'SUMO_HOME' in os.environ:
 else:
     sys.exit("Please declare the environment variable 'SUMO_HOME'")
 from env.env_MAL import MALenv
-from agent.agent import Agent
 
 if __name__ == '__main__':
     prs = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -36,8 +32,9 @@ if __name__ == '__main__':
     prs.add_argument("-batch_size", dest="batch_size", default=32)
     prs.add_argument("-delta_time", dest="delta_time", default=5)
     prs.add_argument("-buffer_size", dest="buffer_size", default=7200)
-    prs.add_argument("-start_size", dest="start_size", default=3600)
+    prs.add_argument("-start_size", dest="start_size", default=300)
     prs.add_argument("-reward", dest="reward", default="pressure")
+    prs.add_argument("-alg", dest="alg", default="vdn") #"idqn", "vdn"
 
     args = prs.parse_args()
     exprimenttime = str(datetime.now()).split('.')[0]
@@ -67,6 +64,10 @@ if __name__ == '__main__':
     args.ob_space = env.ob_space()
     args.action_space = env.action_space()
     args.init_state = init_st
+    if args.alg == "idqn":
+        from agent.IDQNagent import Agent
+    elif args.alg == "vdn":
+        from agent.VDNagent import Agent
     agents = Agent(args)
 
 
