@@ -47,11 +47,14 @@ class Agent:
         self.target_update_freq = args.target_update_freq
         self.max_gradient = 10
         self.loss = []
+        self.start_size = args.start_size
 
 
     def train(self):
-        if (self.buffer.len()) < self.buffer_size:
-            return
+        #if (self.buffer.len()) < self.buffer_size:
+            #return
+        if (self.buffer.len()) < self.start_size:
+            return 
         losses = []
         for _ in range(self.gradient_step):
             #pdb.set_trace()

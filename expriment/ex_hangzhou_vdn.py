@@ -7,7 +7,7 @@ from datetime import datetime
 #from nets.params.params import NetParams
 import pdb
 
-os.environ['SUMO_HOME'] = '/home/ssx/sumo'
+#os.environ['SUMO_HOME'] = '/home/ssx/sumo'
 os.environ['LIBSUMO_AS_TRACI'] = '1'
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     prs.add_argument("-route", dest="route", type=str, default='../nets/hangzhou/hangzhou_4x4_gudang_18041610_1h.rou.xml')
     prs.add_argument("-net", dest="net",default='../nets/hangzhou/hangzhou_4x4_gudang_18041610_1h.net.xml')
-    prs.add_argument("-lr", dest="lr", default=0.0005)
+    prs.add_argument("-lr", dest="lr", default=0.001)
     prs.add_argument("-gamma", dest="gamma", default=0.99)
     prs.add_argument("-gradient_step", dest="gradient_step", default=5)
     prs.add_argument("-train_freq", dest="train_freq", default=100)
@@ -36,25 +36,28 @@ if __name__ == '__main__':
     prs.add_argument("-gui", dest="gui", default=False)
     prs.add_argument("-batch_size", dest="batch_size", default=32)
     prs.add_argument("-delta_time", dest="delta_time", default=5)
-    prs.add_argument("-buffer_size", dest="buffer_size", default=3600)
+    prs.add_argument("-buffer_size", dest="buffer_size", default=7200)
+    prs.add_argument("-start_size", dest="start_size", default=3600)
+    prs.add_argument("-reward", dest="reward", default="pressure")
 
     args = prs.parse_args()
     exprimenttime = str(datetime.now()).split('.')[0]
-    csv_name = '../output/hangzhou/DQN_single_st_single_queue_{}/DQN_{}_{}_{}_{}'.format(exprimenttime,
+    csv_name = '../output/hangzhou/DQN_single_st_{}_{}/DQN_{}_{}_{}_{}'.format(args.reward, exprimenttime,
                                                                       args.lr,
                                                                       args.gradient_step,
                                                                       args.train_freq,
                                                                       args.target_update_freq)
-    param_file = '../output/hangzhou/DQN_single_st_single_queue_{}/'.format(exprimenttime)
+    param_file = '../output/hangzhou/DQN_single_st_{}_{}/'.format(args.reward, exprimenttime)
     #xml_file = csv_name + "data_xml"
     #args.xml_file = xml_file
     os.makedirs(os.path.dirname(csv_name), exist_ok=True)
     args.param_file = param_file
-    args.min_green = 5
+    args.min_green = 10
     args.max_green = 60
     args.num_seconds = 3600
     args.csv_name = csv_name
-    args.epsilon_init = 0.5
+    args.epsilon_init = 0
+    args.yellow = 0
     with open(param_file + 'args.json', 'w') as file:
         json.dump(vars(args), file)
 
@@ -68,7 +71,7 @@ if __name__ == '__main__':
     agents = Agent(args)
 
 
-    max_episode = 70
+    max_episode = 100
     start_time = time.time()
     for ep in range(max_episode):
         print(f"episode: {ep}/{max_episode}")

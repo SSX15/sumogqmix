@@ -23,7 +23,6 @@ class MALenv(gymnasium.Env):
     CONNECTION_LABEL = 0
     def __init__(
             self, args,
-            yellow_time=3,
             begin_time=0,
             max_depart_delay=100000,
             waiting_time_memory=1000,
@@ -45,7 +44,7 @@ class MALenv(gymnasium.Env):
             self.sumo_binary = sumolib.checkBinary('sumo')
         self.min_green = args.min_green
         self.max_green = args.max_green
-        self.yellow_time = yellow_time
+        self.yellow_time = args.yellow 
         self.begin_time = begin_time
         self.sim_max_time = args.num_seconds
         self.delta_time = args.delta_time
