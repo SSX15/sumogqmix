@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 import pdb
 
-os.environ['SUMO_HOME'] = '/home/ssx/sumo'
+#os.environ['SUMO_HOME'] = '/home/ssx/sumo'
 os.environ['LIBSUMO_AS_TRACI'] = '1'
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
@@ -31,19 +31,19 @@ if __name__ == '__main__':
     prs.add_argument("-gui", dest="gui", default=False)
     prs.add_argument("-batch_size", dest="batch_size", default=32)
     prs.add_argument("-delta_time", dest="delta_time", default=5)
-    prs.add_argument("-buffer_size", dest="buffer_size", default=7200)
-    prs.add_argument("-start_size", dest="start_size", default=300)
-    prs.add_argument("-reward", dest="reward", default="pressure")
+    prs.add_argument("-buffer_size", dest="buffer_size", default=36000)
+    prs.add_argument("-start_size", dest="start_size", default=32)
+    prs.add_argument("-reward", dest="reward", default="queue") #"queue", "pressure", "diffwait", "speed"
     prs.add_argument("-alg", dest="alg", default="vdn") #"idqn", "vdn"
 
     args = prs.parse_args()
     exprimenttime = str(datetime.now()).split('.')[0]
-    csv_name = '../output/hangzhou/DQN_single_st_{}_{}/DQN_{}_{}_{}_{}'.format(args.reward, exprimenttime,
+    csv_name = '../output/hangzhou/{}_single_st_{}_{}/{}_{}_{}_{}'.format(args.alg, args.reward, exprimenttime,
                                                                       args.lr,
                                                                       args.gradient_step,
                                                                       args.train_freq,
                                                                       args.target_update_freq)
-    param_file = '../output/hangzhou/DQN_single_st_{}_{}/'.format(args.reward, exprimenttime)
+    param_file = '../output/hangzhou/{}_single_st_{}_{}/'.format(args.alg, args.reward, exprimenttime)
     #xml_file = csv_name + "data_xml"
     #args.xml_file = xml_file
     os.makedirs(os.path.dirname(csv_name), exist_ok=True)
@@ -53,7 +53,7 @@ if __name__ == '__main__':
     args.num_seconds = 3600
     args.csv_name = csv_name
     args.epsilon_init = 0
-    args.yellow_time = 0
+    args.yellow_time = 3
     with open(param_file + 'args.json', 'w') as file:
         json.dump(vars(args), file)
 

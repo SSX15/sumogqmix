@@ -81,8 +81,8 @@ class trafficlight:
         return state
 
     def get_reward(self):
-        #self.reward = -sum(traci.lane.getLastStepHaltingNumber(lane) for lane in self.lanes)
-        self.reward = self.get_pressure()
+        self.reward = -sum(traci.lane.getLastStepHaltingNumber(lane) for lane in self.lanes)
+        #self.reward = self.get_pressure()
         #self.reward = self.get_average_speed()
         #self.reward = self.diff_waiting_time_reward()
         return self.reward
