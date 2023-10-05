@@ -3,6 +3,9 @@ import os, sys, argparse
 import time
 from datetime import datetime
 import pdb
+import torch
+import numpy as np
+import random
 
 #os.environ['SUMO_HOME'] = '/home/ssx/sumo'
 os.environ['LIBSUMO_AS_TRACI'] = '1'
@@ -15,6 +18,12 @@ else:
     sys.exit("Please declare the environment variable 'SUMO_HOME'")
 from env.env_MAL import MALenv
 
+def seed_torch(seed):
+    torch.manual_seed(seed)
+    if torch.backends.cudnn.enabled:
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
+
 if __name__ == '__main__':
     prs = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
@@ -22,7 +31,7 @@ if __name__ == '__main__':
     prs.add_argument("-net", dest="net",default='../nets/hangzhou/hangzhou_4x4_gudang_18041610_1h.net.xml')
     prs.add_argument("-lr", dest="lr", default=0.001)
     prs.add_argument("-gamma", dest="gamma", default=0.99)
-    prs.add_argument("-gradient_step", dest="gradient_step", default=5)
+    prs.add_argument("-gradient_step", dest="gradient_step", default=1)
     prs.add_argument("-train_freq", dest="train_freq", default=100)
     prs.add_argument("-target_update_freq", dest="target_update_freq", default=3600)
     prs.add_argument("-savefile", dest="file", default=True)
@@ -32,7 +41,7 @@ if __name__ == '__main__':
     prs.add_argument("-batch_size", dest="batch_size", default=32)
     prs.add_argument("-delta_time", dest="delta_time", default=5)
     prs.add_argument("-buffer_size", dest="buffer_size", default=36000)
-    prs.add_argument("-start_size", dest="start_size", default=32)
+    prs.add_argument("-start_size", dest="start_size", default=300)
     prs.add_argument("-reward", dest="reward", default="queue") #"queue", "pressure", "diffwait", "speed"
     prs.add_argument("-alg", dest="alg", default="vdn") #"idqn", "vdn"
 
@@ -54,8 +63,14 @@ if __name__ == '__main__':
     args.csv_name = csv_name
     args.epsilon_init = 0
     args.yellow_time = 3
+    args.seed = 1
     with open(param_file + 'args.json', 'w') as file:
         json.dump(vars(args), file)
+
+    seed = args.seed
+    np.random.seed(seed)
+    random.seed(seed)
+    seed_torch(seed)
 
     #pdb.set_trace()
     env = MALenv(args)
@@ -71,7 +86,7 @@ if __name__ == '__main__':
     agents = Agent(args)
 
 
-    max_episode = 100
+    max_episode = 200
     start_time = time.time()
     for ep in range(max_episode):
         print(f"episode: {ep}/{max_episode}")
