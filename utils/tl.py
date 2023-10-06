@@ -5,6 +5,7 @@ from gymnasium import spaces
 class trafficlight:
     def __init__(self,
                 env,
+                args,
                 tl_id,
                 delta_time,
                 yellow_time,
@@ -15,6 +16,7 @@ class trafficlight:
                 agent_n):
         #pdb.set_trace()
         #print(env)
+        self.args = args
         self.agent_n = agent_n
         self.id = tl_id
         self.env = env
@@ -81,10 +83,14 @@ class trafficlight:
         return state
 
     def get_reward(self):
-        self.reward = -sum(traci.lane.getLastStepHaltingNumber(lane) for lane in self.lanes)
-        #self.reward = self.get_pressure()
-        #self.reward = self.get_average_speed()
-        #self.reward = self.diff_waiting_time_reward()
+        if self.args['reward'] == 'queue':
+            self.reward = -sum(traci.lane.getLastStepHaltingNumber(lane) for lane in self.lanes)
+        elif self.args['reward'] == 'speed':
+            self.reward = self.get_average_speed()
+        elif self.args['reward'] == 'pressure':
+            self.reward = self.get_pressure()
+        elif self.args['reward'] == 'diff_time':
+            self.reward = self.diff_waiting_time_reward()
         return self.reward
 
     def diff_waiting_time_reward(self):

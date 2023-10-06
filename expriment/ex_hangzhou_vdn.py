@@ -87,7 +87,7 @@ if __name__ == '__main__':
     agents = Agent(args)
 
 
-    max_episode = 3
+    max_episode = 200
     start_time = time.time()
     for ep in range(max_episode):
         print(f"episode: {ep}/{max_episode}")

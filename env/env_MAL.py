@@ -33,6 +33,7 @@ class MALenv(gymnasium.Env):
 
 
     ):
+        self.args = args
         self.episode_file = args.csv_name
         self.sim_file = args.csv_name
         self.net = args.net
@@ -155,7 +156,7 @@ class MALenv(gymnasium.Env):
         if seed is not None:
             self.sumo_seed = seed
         self.start()
-        self.trafficlights = {a_id: trafficlight(env=self,
+        self.trafficlights = {a_id: trafficlight(env=self, args=self.args,
                                                tl_id=a_id,
                                                delta_time=self.delta_time,
                                                yellow_time=self.yellow_time,
