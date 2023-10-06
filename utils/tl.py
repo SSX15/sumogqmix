@@ -30,6 +30,7 @@ class trafficlight:
         self.next_action_time = begin_time
         self.time_since_last_change = 0
         self.is_yellow = False
+        self.all_lanes = traci.lane.getIDList()
         self.lanes = list(dict.fromkeys(traci.trafficlight.getControlledLanes(self.id)))
         self.out_lanes = [link[0][1] for link in self.sumo.trafficlight.getControlledLinks(self.id) if link]
         self.out_lanes = list(set(self.out_lanes))
@@ -83,13 +84,14 @@ class trafficlight:
         return state
 
     def get_reward(self):
-        if self.args['reward'] == 'queue':
-            self.reward = -sum(traci.lane.getLastStepHaltingNumber(lane) for lane in self.lanes)
-        elif self.args['reward'] == 'speed':
+        if self.args.reward == 'queue':
+            #self.reward = -sum(traci.lane.getLastStepHaltingNumber(lane) for lane in self.lanes)
+            self.reward = -sum(traci.lane.getLastStepHaltingNumber(lane) for lane in self.all_lanes)
+        elif self.args.reward == 'speed':
             self.reward = self.get_average_speed()
-        elif self.args['reward'] == 'pressure':
+        elif self.args.reward == 'pressure':
             self.reward = self.get_pressure()
-        elif self.args['reward'] == 'diff_time':
+        elif self.args.reward == 'diff_time':
             self.reward = self.diff_waiting_time_reward()
         return self.reward
 
@@ -126,7 +128,8 @@ class trafficlight:
 
     def get_veh_list(self):
         veh_list = []
-        for lane in self.lanes:
+        #for lane in self.lanes:
+        for lane in self.all_lanes:
             veh_list += self.sumo.lane.getLastStepVehicleIDs(lane)
         return veh_list
 

@@ -43,7 +43,7 @@ if __name__ == '__main__':
     prs.add_argument("-buffer_size", dest="buffer_size", default=36000)
     prs.add_argument("-start_size", dest="start_size", default=300)
     prs.add_argument("-reward", dest="reward", default="speed") #"queue", "pressure", "diffwait", "speed"
-    prs.add_argument("-alg", dest="alg", default="vdn") #"idqn", "vdn"
+    prs.add_argument("-alg", dest="alg", default="idqn") #"idqn", "vdn"
 
     args = prs.parse_args()
     args.seed = 3
