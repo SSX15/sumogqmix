@@ -52,7 +52,7 @@ class MALenv(gymnasium.Env):
         self.waiting_time_memory = waiting_time_memory
         self.time_to_teleport = time_to_teleport
         self.sumo_warnings = False
-        self.sumo_seed = sumo_seed
+        self.sumo_seed = args.seed
         self.sumo = None
         self.label = str(MALenv.CONNECTION_LABEL)
         MALenv.CONNECTION_LABEL += 1
@@ -92,7 +92,7 @@ class MALenv(gymnasium.Env):
         self.cur_phase = {a_id: 0 for a_id in self.agent_id}
 
     def start(self):
-        xml_file = f"../output/xml/{self.run}.xml"
+        xml_file = f"../output/hangzhou/xml/{self.run}.xml"
         sumo_cmd = [self.sumo_binary,
                     '-n', self.net,
                     '-r', self.route,
