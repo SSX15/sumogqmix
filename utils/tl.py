@@ -85,8 +85,7 @@ class trafficlight:
 
     def get_reward(self):
         if self.args.reward == 'queue':
-            #self.reward = -sum(traci.lane.getLastStepHaltingNumber(lane) for lane in self.lanes)
-            self.reward = -sum(traci.lane.getLastStepHaltingNumber(lane) for lane in self.all_lanes)
+            self.reward = self.get_queue()
         elif self.args.reward == 'speed':
             self.reward = self.get_average_speed()
         elif self.args.reward == 'pressure':
@@ -94,6 +93,13 @@ class trafficlight:
         elif self.args.reward == 'diff_time':
             self.reward = self.diff_waiting_time_reward()
         return self.reward
+
+    def get_queue(self):
+        lane_list = self.lanes
+        if self.args.co:
+            lane_list = self.all_lanes
+        queue_sum = -sum(traci.lane.getLastStepHaltingNumber(lane) for lane in lane_list)
+        return queue_sum
 
     def diff_waiting_time_reward(self):
         ts_wait = sum(self.get_accumulated_waiting_time_per_lane()) / 100.0
@@ -128,8 +134,11 @@ class trafficlight:
 
     def get_veh_list(self):
         veh_list = []
-        #for lane in self.lanes:
-        for lane in self.all_lanes:
+        lane_list = self.lanes
+        if self.args.co:
+            lane_list = self.all_lanes
+        #for lane in self.all_lanes:
+        for lane in lane_list:
             veh_list += self.sumo.lane.getLastStepVehicleIDs(lane)
         return veh_list
 

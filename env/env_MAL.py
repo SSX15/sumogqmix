@@ -53,7 +53,10 @@ class MALenv(gymnasium.Env):
         self.waiting_time_memory = waiting_time_memory
         self.time_to_teleport = time_to_teleport
         self.sumo_warnings = False
-        self.sumo_seed = args.seed
+        if args.seed:
+            self.sumo_seed = args.seed
+        else:
+            self.sumo_seed = sumo_seed
         self.sumo = None
         self.label = str(MALenv.CONNECTION_LABEL)
         MALenv.CONNECTION_LABEL += 1

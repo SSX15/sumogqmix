@@ -13,6 +13,7 @@ import numpy as np
 class Agent:
     def __init__(self, args):
         #self.env = env
+        self.args = args
         self.agent_ids = args.agent_ids
         self.n_agent = len(self.agent_ids)
         self.state = args.init_state
@@ -66,7 +67,10 @@ class Agent:
             batch = self.merge_batch(batch)
             a = batch['a'].to(self.device)
             r = batch['r'].to(self.device).squeeze(2)
-            r = torch.sum(r, dim=1).reshape(-1, 1)
+            if self.args.co:
+                r = r[:, 0].unsqueeze(1)
+            else:
+                r = torch.sum(r, dim=1).reshape(-1, 1)
 
             #input, input_n = [], []
             input = batch['s']

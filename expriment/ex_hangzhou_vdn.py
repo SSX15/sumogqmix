@@ -43,17 +43,17 @@ if __name__ == '__main__':
     prs.add_argument("-buffer_size", dest="buffer_size", default=36000)
     prs.add_argument("-start_size", dest="start_size", default=300)
     prs.add_argument("-reward", dest="reward", default="speed") #"queue", "pressure", "diffwait", "speed"
-    prs.add_argument("-alg", dest="alg", default="idqn") #"idqn", "vdn"
-
+    prs.add_argument("-alg", dest="alg", default="vdn") #"idqn", "vdn"
+    prs.add_argument("-coop", dest="co", default="False") # True:same all reward
     args = prs.parse_args()
-    args.seed = 3
+    args.seed = False
     exprimenttime = str(datetime.now()).split('.')[0]
-    csv_name = '../output/hangzhou/{}_single_st_{}_{}/{}_{}_{}_{}'.format(args.alg, args.reward, exprimenttime,
+    csv_name = '../output/hangzhou/{}_{}_{}_{}/{}_{}_{}_{}'.format(args.alg, args.co, args.reward, exprimenttime,
                                                                       args.lr,
                                                                       args.gradient_step,
                                                                       args.train_freq,
                                                                       args.target_update_freq)
-    param_file = '../output/hangzhou/{}_single_st_{}_{}/'.format(args.alg, args.reward, exprimenttime)
+    param_file = '../output/hangzhou/{}_{}_{}_{}/'.format(args.alg, args.co, args.reward, exprimenttime)
     xml_file = "../output/hangzhou/xml/"
     #args.xml_file = xml_file
     os.makedirs(os.path.dirname(csv_name), exist_ok=True)
@@ -67,11 +67,12 @@ if __name__ == '__main__':
     args.yellow_time = 3
     with open(param_file + 'args.json', 'w') as file:
         json.dump(vars(args), file)
-
-    seed = args.seed
-    np.random.seed(seed)
-    random.seed(seed)
-    seed_torch(seed)
+    
+    if args.seed:
+        seed = args.seed
+        np.random.seed(seed)
+        random.seed(seed)
+        seed_torch(seed)
 
     #pdb.set_trace()
     env = MALenv(args)
