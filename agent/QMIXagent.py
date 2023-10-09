@@ -70,13 +70,14 @@ class Agent:
             #r = r[:, 0].unsqueeze(1)
 
             #input, input_n = [], []
-            input = batch['s']
-            input_n = batch['ns']
-            states = input.review(self.batch_size, -1)
-            n_states = input_n.review(self.batch_size, -1)
+            input = batch['s'].to(self.device).to(torch.float32)
+            input_n = batch['ns'].to(self.device).to(torch.float32)
             eye = torch.eye(self.n_agent).unsqueeze(0).expand(self.batch_size, -1, -1)
-            input = torch.cat((input, eye), dim=2).to(self.device).to(torch.float32)
-            input_n = torch.cat((input_n, eye), dim=2).to(self.device).to(torch.float32)
+            eye = eye.to(self.device).to(torch.float32)
+            input = torch.cat((input, eye), dim=2)
+            input_n = torch.cat((input_n, eye), dim=2)
+            states = input.view(self.batch_size, -1)
+            n_states = input_n.view(self.batch_size, -1)
 
             q_v = self.q_net(input)
             next_q_v = self.q_net_target(input_n).max(dim=2)[0]

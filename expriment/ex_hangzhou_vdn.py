@@ -7,7 +7,7 @@ import torch
 import numpy as np
 import random
 
-os.environ['SUMO_HOME'] = '/home/ssx/sumo'
+#os.environ['SUMO_HOME'] = '/home/ssx/sumo'
 os.environ['LIBSUMO_AS_TRACI'] = '1'
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     prs.add_argument("-buffer_size", dest="buffer_size", default=36000)
     prs.add_argument("-start_size", dest="start_size", default=300)
     prs.add_argument("-reward", dest="reward", default="queue") #"queue", "pressure", "diffwait", "speed"
-    prs.add_argument("-alg", dest="alg", default="idqn") #"idqn", "vdn"
+    prs.add_argument("-alg", dest="alg", default="qmix") #"idqn", "vdn", "qmix"
 
     args = prs.parse_args()
     args.seed = 'random'
@@ -85,6 +85,8 @@ if __name__ == '__main__':
         from agent.IDQNagent import Agent
     elif args.alg == "vdn":
         from agent.VDNagent import Agent
+    elif args.alg == "qmix":
+        from agent.QMIXagent import Agent
     agents = Agent(args)
 
 

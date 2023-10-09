@@ -11,7 +11,7 @@ class QMIXnet(nn.Module):
         self.qmix_hidden_dim = 64
         self.state_shape = self.ob_space.shape[0] * self.n_agent
         #超网络的两层全连接参数
-        self.hyper_w1 = nn.Linear(self.state_shape, self.n_agents * self.qmix_hidden_dim)
+        self.hyper_w1 = nn.Linear(self.state_shape, self.n_agent * self.qmix_hidden_dim)
         self.hyper_w2 = nn.Linear(self.state_shape, self.qmix_hidden_dim * 1)
 
         self.hyper_b1 = nn.Linear(self.state_shape, self.qmix_hidden_dim)
