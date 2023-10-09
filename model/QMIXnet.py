@@ -8,16 +8,24 @@ class QMIXnet(nn.Module):
         self.agent_ids = args.agent_ids
         self.n_agent = len(self.agent_ids)
         self.ob_space = args.ob_space
-        self.qmix_hidden_dim = 64
+        self.qmix_hidden_dim = 32
+        self.hyper_hidden_dim = 256
         self.state_shape = self.ob_space.shape[0] * self.n_agent
         #超网络的两层全连接参数
-        self.hyper_w1 = nn.Linear(self.state_shape, self.n_agent * self.qmix_hidden_dim)
-        self.hyper_w2 = nn.Linear(self.state_shape, self.qmix_hidden_dim * 1)
+        self.hyper_w1 = nn.Sequential(nn.Linear(self.state_shape, self.hyper_hidden_dim),
+                                      nn.ReLU(),
+                                      nn.Linear(self.hyper_hidden_dim, self.n_agent * self.qmix_hidden_dim))
+        self.hyper_w2 = nn.Sequential(nn.Linear(self.state_shape, self.hyper_hidden_dim),
+                                      nn.ReLU(),
+                                      nn.Linear(self.hyper_hidden_dim, self.qmix_hidden_dim * 1))
 
-        self.hyper_b1 = nn.Linear(self.state_shape, self.qmix_hidden_dim)
-        self.hyper_b2 =nn.Sequential(nn.Linear(self.state_shape, self.qmix_hidden_dim * 1),
+        self.hyper_b1 = nn.Sequential(nn.Linear(self.state_shape, self.hyper_hidden_dim),
+                                      nn.ReLU(),
+                                      nn.Linear(self.hyper_hidden_dim, self.qmix_hidden_dim * 1))
+
+        self.hyper_b2 =nn.Sequential(nn.Linear(self.state_shape, self.hyper_hidden_dim),
                                      nn.ReLU(),
-                                     nn.Linear(self.qmix_hidden_dim, 1))
+                                     nn.Linear(self.hyper_hidden_dim, 1))
     def forward(self, q_values, state): #q_v:(batch, n_agent)  state:(batch, state_shape)
         q_values = q_values.view(-1, 1, self.n_agent) #(batch, 1, n_agent)
 
