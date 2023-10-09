@@ -7,7 +7,7 @@ import torch
 import numpy as np
 import random
 
-#os.environ['SUMO_HOME'] = '/home/ssx/sumo'
+os.environ['SUMO_HOME'] = '/home/ssx/sumo'
 os.environ['LIBSUMO_AS_TRACI'] = '1'
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
@@ -67,6 +67,7 @@ if __name__ == '__main__':
     args.yellow_time = 3
     with open(param_file + 'args.json', 'w') as file:
         json.dump(vars(args), file)
+
     if args.seed != 'random':
         seed = args.seed
         np.random.seed(seed)
