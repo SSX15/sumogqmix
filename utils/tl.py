@@ -85,8 +85,8 @@ class trafficlight:
 
     def get_reward(self):
         if self.args.reward == 'queue':
-            #self.reward = -sum(traci.lane.getLastStepHaltingNumber(lane) for lane in self.lanes)
-            self.reward = -sum(traci.lane.getLastStepHaltingNumber(lane) for lane in self.all_lanes)
+            self.reward = -sum(traci.lane.getLastStepHaltingNumber(lane) for lane in self.lanes)
+            #self.reward = -sum(traci.lane.getLastStepHaltingNumber(lane) for lane in self.all_lanes)
         elif self.args.reward == 'speed':
             self.reward = self.get_average_speed()
         elif self.args.reward == 'pressure':
@@ -128,8 +128,8 @@ class trafficlight:
 
     def get_veh_list(self):
         veh_list = []
-        #for lane in self.lanes:
-        for lane in self.all_lanes:
+        for lane in self.lanes:
+        #for lane in self.all_lanes:
             veh_list += self.sumo.lane.getLastStepVehicleIDs(lane)
         return veh_list
 
