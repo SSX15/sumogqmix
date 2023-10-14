@@ -38,7 +38,8 @@ class trafficlight:
 
         #self.lanes_length = {lane: traci.lane.getLength()}
         self.init_phase()
-        self.ob_space = spaces.Box(low=np.zeros(self.num_green_phases+1+2*len(self.lanes)+self.agent_n, dtype=np.float32), high=np.ones(self.num_green_phases+1+2*len(self.lanes)++self.agent_n, dtype=np.float32))
+        #self.ob_space = spaces.Box(low=np.zeros(self.num_green_phases+1+2*len(self.lanes)+self.agent_n, dtype=np.float32), high=np.ones(self.num_green_phases+1+2*len(self.lanes)+self.agent_n, dtype=np.float32))
+        self.ob_space = spaces.Box(low=np.zeros(2*len(self.lanes)+self.agent_n, dtype=np.float32), high=np.ones(2*len(self.lanes)+self.agent_n, dtype=np.float32))
         self.action_space = spaces.Discrete(self.num_green_phases)
         self.reward = None
         self.last_measure = 0.0
@@ -76,11 +77,13 @@ class trafficlight:
     def time_to_act(self):
         return self.next_action_time == self.env.sim_step
     def get_state(self):
-        phase = [1 if self.green_phase == i else 0 for i in range(self.num_green_phases)]
-        min_green = [0 if self.time_since_last_change < self.min_green + self.yellow_time else 1]
-        density = self.get_lane_density()
+        #phase = [1 if self.green_phase == i else 0 for i in range(self.num_green_phases)]
+        #min_green = [0 if self.time_since_last_change < self.min_green + self.yellow_time else 1]
+        #density = self.get_lane_density()
         queue = self.get_lane_queue()
-        state = np.array(phase + min_green + density + queue, dtype=np.float32)
+        speed = self.get_lane_speed()
+        #state = np.array(phase + min_green + density + queue, dtype=np.float32)
+        state = np.array(queue + speed, dtype=np.float32)
         return state
 
     def get_reward(self):
@@ -141,8 +144,13 @@ class trafficlight:
         return density
 
     def get_lane_queue(self):
-        lane_queue = [traci.lane.getLastStepHaltingNumber(lane_id) * (traci.lane.getLastStepLength(lane_id) + 2.5) / traci.lane.getLength(lane_id) for lane_id in self.lanes]
+        #lane_queue = [traci.lane.getLastStepHaltingNumber(lane_id) * (traci.lane.getLastStepLength(lane_id) + 2.5) / traci.lane.getLength(lane_id) for lane_id in self.lanes]
+        lane_queue = [traci.lane.getLastStepHaltingNumber(lane_id) for lane_id in self.lanes]
         return lane_queue
+
+    def get_lane_speed(self):
+        lane_speed = [traci.lane.getLastStepMeanSpeed(lane_id) for lane_id in self.lanes]
+        return lane_speed
 
     def set_next_phase(self, newphase):
         if self.green_phase == newphase or self.time_since_last_change < self.min_green + self.yellow_time:
