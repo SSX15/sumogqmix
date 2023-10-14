@@ -149,7 +149,9 @@ class trafficlight:
         return lane_queue
 
     def get_lane_speed(self):
-        lane_speed = [traci.lane.getLastStepMeanSpeed(lane_id) for lane_id in self.lanes]
+        lane_speeds = [traci.lane.getLastStepMeanSpeed(lane_id) for lane_id in self.lanes]
+        lane_veh = [traci.lane.getLastStepVehicleNumber(lane_id) for lane_id in self.lanes]
+        lane_speed = [x if y else 0 for x, y in zip(lane_speeds, lane_veh)]
         return lane_speed
 
     def set_next_phase(self, newphase):
