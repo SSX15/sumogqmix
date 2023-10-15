@@ -60,11 +60,11 @@ class ReplayBuffer2:
 
 
 class EpisodeMemory:
-    def __init__(self, max_epi_len=3600, max_mem_size=10, batch_size=1, seq_len=1):
+    def __init__(self, args, max_epi_len=3600, max_mem_size=50, batch_size=32, seq_len=30):
         self.max_epi_len = max_epi_len
         self.max_mem_size = max_mem_size
-        self.batch_size = batch_size
-        self.seq_len = seq_len
+        self.batch_size = args.batch_size
+        self.seq_len = args.seq_len
         self.memory = collections.deque(maxlen=self.max_mem_size)
 
     def push(self, episode):
@@ -91,8 +91,8 @@ class EpisodeBuffer:
     def push(self, transition):
         self.s.append(transition[0])
         self.a.append(transition[1])
-        self.r.append(transition[2])
-        self.n_s.append(transition[3])
+        self.n_s.append(transition[2])
+        self.r.append(transition[3])
         #self.done.append(transition[4])
 
     def sample(self, idx, seq_len):
@@ -107,7 +107,7 @@ class EpisodeBuffer:
         r = r[idx:idx+seq_len]
         n_s = n_s[idx:idx+seq_len]
         #done = done[idx:idx+seq_len]
-        return dict(s=s, a=a, r=r, n_s=n_s)
+        return dict(s=s, a=a, r=r, ns=n_s)
 
     def len(self):
         return len(self.s)

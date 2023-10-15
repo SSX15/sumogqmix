@@ -7,7 +7,7 @@ import torch
 import numpy as np
 import random
 
-#os.environ['SUMO_HOME'] = '/home/ssx/sumo'
+os.environ['SUMO_HOME'] = '/home/ssx/sumo'
 os.environ['LIBSUMO_AS_TRACI'] = '1'
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
@@ -43,8 +43,9 @@ if __name__ == '__main__':
     prs.add_argument("-buffer_size", dest="buffer_size", default=36000)
     prs.add_argument("-start_size", dest="start_size", default=300)
     prs.add_argument("-reward", dest="reward", default="queue") #"queue", "pressure", "diffwait", "speed"
-    prs.add_argument("-alg", dest="alg", default="qmix") #"idqn", "vdn", "qmix"
-
+    prs.add_argument("-alg", dest="alg", default="idqn") #"idqn", "vdn", "qmix"
+    prs.add_argument("-rnn", dest="rnn", default=True)
+    prs.add_argument("-seq", dest="seq_len", default=30)
     args = prs.parse_args()
     args.seed = 'random'
     exprimenttime = str(datetime.now()).split('.')[0]
@@ -96,10 +97,14 @@ if __name__ == '__main__':
         print(f"episode: {ep}/{max_episode}")
         ep_start = time.time()
         agents.update_epsilon(episode=ep, max_episode=max_episode)
+        if args.rnn:
+            agents.init_rnn()
         done = {'__all__': False}
         while not done['__all__']:
             done = env.rollout(agents=agents)
             agents.train()
+        if args.rnn:
+            agents.episode_push()
         if args.file:
             env.save_sim_info()
             env.save_episode_info(agents=agents)
