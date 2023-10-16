@@ -49,12 +49,12 @@ if __name__ == '__main__':
     args = prs.parse_args()
     args.seed = 'random'
     exprimenttime = str(datetime.now()).split('.')[0]
-    csv_name = '../output/hangzhou/{}_single_st_{}_{}/{}_{}_{}_{}'.format(args.alg, args.reward, exprimenttime,
+    csv_name = '../output/hangzhou/{}_rnn{}_single_st_{}_{}/{}_{}_{}_{}'.format(args.alg, args.rnn, args.reward, exprimenttime,
                                                                       args.lr,
                                                                       args.gradient_step,
                                                                       args.train_freq,
                                                                       args.target_update_freq)
-    param_file = '../output/hangzhou/{}_single_st_{}_{}/'.format(args.alg, args.reward, exprimenttime)
+    param_file = '../output/hangzhou/{}_rnn{}_single_st_{}_{}/'.format(args.alg, args.rnn, args.reward, exprimenttime)
     xml_file = "../output/hangzhou/xml/"
     #args.xml_file = xml_file
     os.makedirs(os.path.dirname(csv_name), exist_ok=True)

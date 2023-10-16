@@ -12,4 +12,3 @@ import numpy as np
 class Agent(BaseAgent):
     def __init__(self, args):
         super().__init__(args)
-        

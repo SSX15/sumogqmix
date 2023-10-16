@@ -243,7 +243,7 @@ class BaseAgent:
         self.cur_episode = EpisodeBuffer()
 
     def init_hidden(self, ep_num):
-        return torch.zeros(ep_num, self.n_agent, 64)
+        return torch.zeros(ep_num, self.n_agent, 64).to(self.device).to(torch.float32)
     def save_parameters(self):
         qnet_path = self.param_file + '{}_qnet.pt'.format(self.agent_id)
         target_path = self.param_file + '{}_target.pt'.format(self.agent_id)
