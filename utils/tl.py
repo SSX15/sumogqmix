@@ -38,8 +38,8 @@ class trafficlight:
 
         #self.lanes_length = {lane: traci.lane.getLength()}
         self.init_phase()
-        #self.ob_space = spaces.Box(low=np.zeros(self.num_green_phases+1+2*len(self.lanes)+self.agent_n, dtype=np.float32), high=np.ones(self.num_green_phases+1+2*len(self.lanes)+self.agent_n, dtype=np.float32))
-        self.ob_space = spaces.Box(low=np.zeros(2*len(self.lanes)+self.agent_n, dtype=np.float32), high=np.ones(2*len(self.lanes)+self.agent_n, dtype=np.float32))
+        self.ob_space = spaces.Box(low=np.zeros(self.num_green_phases+1+2*len(self.lanes)+self.agent_n, dtype=np.float32), high=np.ones(self.num_green_phases+1+2*len(self.lanes)+self.agent_n, dtype=np.float32))
+        #self.ob_space = spaces.Box(low=np.zeros(2*len(self.lanes)+self.agent_n, dtype=np.float32), high=np.ones(2*len(self.lanes)+self.agent_n, dtype=np.float32))
         self.action_space = spaces.Discrete(self.num_green_phases)
         self.reward = None
         self.last_measure = 0.0
