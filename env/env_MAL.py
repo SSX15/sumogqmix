@@ -28,7 +28,6 @@ class MALenv(gymnasium.Env):
             time_to_teleport=-1,
             sumo_seed: Union[str, int] = 'random',
             sumo_warnings: bool = True,
-            train_freq=1
 
 
     ):
@@ -74,7 +73,7 @@ class MALenv(gymnasium.Env):
         self.action_save = []
         self.states = {agent: None for agent in self.agent_id}
         self.rewards = {agent: None for agent in self.agent_id}
-        self.train_freq = train_freq
+        self.train_freq = args.train_freq
 
         self.nullphase_hot = [0,0,0,0,0,0]
         self.curphase_hot = {a_id: [1,0,0,0,0,0] for a_id in self.agent_id}
