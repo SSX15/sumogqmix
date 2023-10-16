@@ -77,13 +77,13 @@ class trafficlight:
     def time_to_act(self):
         return self.next_action_time == self.env.sim_step
     def get_state(self):
-        #phase = [1 if self.green_phase == i else 0 for i in range(self.num_green_phases)]
-        #min_green = [0 if self.time_since_last_change < self.min_green + self.yellow_time else 1]
-        #density = self.get_lane_density()
+        phase = [1 if self.green_phase == i else 0 for i in range(self.num_green_phases)]
+        min_green = [0 if self.time_since_last_change < self.min_green + self.yellow_time else 1]
+        density = self.get_lane_density()
         queue = self.get_lane_queue()
-        speed = self.get_lane_speed()
-        #state = np.array(phase + min_green + density + queue, dtype=np.float32)
-        state = np.array(queue + speed, dtype=np.float32)
+        #speed = self.get_lane_speed()
+        state = np.array(phase + min_green + density + queue, dtype=np.float32)
+        #state = np.array(queue + speed, dtype=np.float32)
         return state
 
     def get_reward(self):

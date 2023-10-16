@@ -32,7 +32,7 @@ if __name__ == '__main__':
     prs.add_argument("-lr", dest="lr", default=0.001)
     prs.add_argument("-gamma", dest="gamma", default=0.99)
     prs.add_argument("-gradient_step", dest="gradient_step", default=1)
-    prs.add_argument("-train_freq", dest="train_freq", default=100)
+    prs.add_argument("-train_freq", dest="train_freq", default=1)
     prs.add_argument("-target_update_freq", dest="target_update_freq", default=3600)
     prs.add_argument("-savefile", dest="file", default=True)
     prs.add_argument("-saveparam", dest="save_param", default=False)
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     prs.add_argument("-buffer_size", dest="buffer_size", default=36000)
     prs.add_argument("-start_size", dest="start_size", default=300)
     prs.add_argument("-reward", dest="reward", default="queue") #"queue", "pressure", "diffwait", "speed"
-    prs.add_argument("-alg", dest="alg", default="qmix") #"idqn", "vdn", "qmix"
+    prs.add_argument("-alg", dest="alg", default="idqn") #"idqn", "vdn", "qmix"
 
     args = prs.parse_args()
     args.seed = 'random'
