@@ -92,7 +92,7 @@ def run(test, lr, tf, bs):
         from agent.QMIXagent import Agent
     agents = Agent(args)
 
-    max_episode = 200
+    max_episode = 150
     start_time = time.time()
     for ep in range(max_episode):
         print(f"episode: {ep}/{max_episode}")
@@ -118,9 +118,9 @@ def run(test, lr, tf, bs):
 
 if __name__ == '__main__':
     test_arg = True
-    lr_list = [0.0005, 0.001, 0.002, 0.004]
-    train_freq_list = [1, 2, 4, 8]
-    buffer_size_list = [3600, 7200, 14400, 36000]
+    lr_list = [0.0005, 0.001, 0.005]
+    train_freq_list = [1, 4, 8]
+    buffer_size_list = [3600, 10800, 36000]
     test_lists = {
         'lr': lr_list,
         'train_freq': train_freq_list,
