@@ -24,7 +24,7 @@ def seed_torch(seed):
         torch.backends.cudnn.benchmark = False
         torch.backends.cudnn.deterministic = True
 
-def run(test, lr, tf, bs):
+def run(test, lr, tf, bs, bas, gs):
     prs = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     prs.add_argument("-route", dest="route", type=str,
                      default='../nets/hangzhou/hangzhou_4x4_gudang_18041610_1h.rou.xml')
@@ -33,7 +33,7 @@ def run(test, lr, tf, bs):
     prs.add_argument("-gamma", dest="gamma", default=0.99)
     prs.add_argument("-gradient_step", dest="gradient_step", default=1)
     prs.add_argument("-train_freq", dest="train_freq", default=1)
-    prs.add_argument("-target_update_freq", dest="target_update_freq", default=3600)
+    prs.add_argument("-target_update_freq", dest="target_update_freq", default=1000)
     prs.add_argument("-savefile", dest="file", default=True)
     prs.add_argument("-saveparam", dest="save_param", default=False)
     prs.add_argument("-load", dest="load", default=False)
@@ -50,6 +50,8 @@ def run(test, lr, tf, bs):
         args.lr = lr
         args.train_freq = tf
         args.buffer_size = bs
+        args.batch_size = bas
+        args.gradient_step = gs
     args.seed = 'random'
     exprimenttime = str(datetime.now()).split('.')[0].replace(':', '-')
     csv_name = '../output/hangzhou/{}_single_st_{}_{}/{}_{}_{}_{}'.format(args.alg, args.reward, exprimenttime,
@@ -121,16 +123,16 @@ if __name__ == '__main__':
     lr_list = [0.0005, 0.001, 0.005]
     train_freq_list = [1, 4, 8]
     buffer_size_list = [3600, 10800, 36000]
-    test_lists = {
-        'lr': lr_list,
-        'train_freq': train_freq_list,
-        'buffer_size': buffer_size_list
-    }
+    batch_size_list = [32, 64]
+    gradient_step_list = [1, 5, 10]
+
     if test_arg:
         for test_lr in lr_list:
             for test_tf in train_freq_list:
                 for test_bs in buffer_size_list:
-                    run(test_arg, test_lr, test_tf, test_bs)
+                    for test_bas in batch_size_list:
+                        for test_gs in gradient_step_list:
+                            run(test_arg, test_lr, test_tf, test_bs, test_bas, test_gs)
     else:
         run(test_arg)
 

@@ -375,3 +375,6 @@ class MALenv(gymnasium.Env):
             agents.update_state(next_st=next_st)
             agents.update_target()
         return done
+
+    def compute_matrix(self):
+        pass

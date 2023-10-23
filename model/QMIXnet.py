@@ -8,9 +8,9 @@ class QMIXnet(nn.Module):
         self.agent_ids = args.agent_ids
         self.n_agent = len(self.agent_ids)
         self.ob_space = args.ob_space
-        self.qmix_hidden_dim = 32
-        self.hyper_hidden_dim = 256
-        self.state_shape = self.ob_space.shape[0] * self.n_agent
+        self.qmix_hidden_dim = 64
+        self.hyper_hidden_dim = 64
+        self.state_shape = (self.ob_space.shape[0] - 16) * self.n_agent
         #超网络的两层全连接参数
         self.hyper_w1 = nn.Sequential(nn.Linear(self.state_shape, self.hyper_hidden_dim),
                                       nn.ReLU(),
@@ -43,6 +43,6 @@ class QMIXnet(nn.Module):
         h_b2 = h_b2.view(-1, 1, 1)
 
         hidden = F.elu(torch.bmm(q_values, h_w1) + h_b1) #(batch, 1, 32)
-        q_total = F.elu(torch.bmm(hidden, h_w2) + h_b2) #(batch, 1, 1)
+        q_total = torch.bmm(hidden, h_w2) + h_b2 #(batch, 1, 1)
         q_total = q_total.squeeze(1)
         return q_total

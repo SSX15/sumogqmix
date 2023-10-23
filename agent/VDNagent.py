@@ -139,6 +139,9 @@ class Agent:
                 for param, target_param in zip_strict(self.q_net.parameters(), self.q_net_target.parameters()):
                     target_param.data.mul_(1 - self.tau)
                     torch.add(target_param.data, param.data, alpha=self.tau, out=target_param.data)
+                for param, target_param in zip_strict(self.vdn_net.parameters(), self.vdn_net_target.parameters()):
+                    target_param.data.mul_(1 - self.tau)
+                    torch.add(target_param.data, param.data, alpha=self.tau, out=target_param.data)
                     #self.update_epsilon()
 
     def merge_batch(self, batch):

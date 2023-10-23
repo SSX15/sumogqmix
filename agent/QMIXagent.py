@@ -66,18 +66,19 @@ class Agent:
             batch = self.merge_batch(batch)
             a = batch['a'].to(self.device)
             r = batch['r'].to(self.device).squeeze(2)
-            r = torch.sum(r, dim=1).reshape(-1, 1)
+            #r = torch.sum(r, dim=1).reshape(-1, 1)
+            r = torch.mean(r, dim=1).reshape(-1, 1)
             #r = r[:, 0].unsqueeze(1)
 
             #input, input_n = [], []
             input = batch['s'].to(self.device).to(torch.float32)
             input_n = batch['ns'].to(self.device).to(torch.float32)
+            states = input.view(self.batch_size, -1)
+            n_states = input_n.view(self.batch_size, -1)
             eye = torch.eye(self.n_agent).unsqueeze(0).expand(self.batch_size, -1, -1)
             eye = eye.to(self.device).to(torch.float32)
             input = torch.cat((input, eye), dim=2)
             input_n = torch.cat((input_n, eye), dim=2)
-            states = input.view(self.batch_size, -1)
-            n_states = input_n.view(self.batch_size, -1)
 
             q_v = self.q_net(input)
             next_q_v = self.q_net_target(input_n).max(dim=2)[0]
@@ -141,6 +142,9 @@ class Agent:
         if self.timestep % self.target_update_freq == 0:
             with torch.no_grad():
                 for param, target_param in zip_strict(self.q_net.parameters(), self.q_net_target.parameters()):
+                    target_param.data.mul_(1 - self.tau)
+                    torch.add(target_param.data, param.data, alpha=self.tau, out=target_param.data)
+                for param, target_param in zip_strict(self.qmix_net.parameters(), self.qmix_net_target.parameters()):
                     target_param.data.mul_(1 - self.tau)
                     torch.add(target_param.data, param.data, alpha=self.tau, out=target_param.data)
                     #self.update_epsilon()
