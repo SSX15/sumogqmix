@@ -24,7 +24,7 @@ def seed_torch(seed):
         torch.backends.cudnn.benchmark = False
         torch.backends.cudnn.deterministic = True
 
-def run(test, lr, tf, bs, bas, gs):
+def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
     prs = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     prs.add_argument("-route", dest="route", type=str,
                      default='../nets/hangzhou/hangzhou_4x4_gudang_18041610_1h.rou.xml')
@@ -44,6 +44,7 @@ def run(test, lr, tf, bs, bas, gs):
     prs.add_argument("-start_size", dest="start_size", default=300)
     prs.add_argument("-reward", dest="reward", default="queue")  # "queue", "pressure", "diffwait", "speed"
     prs.add_argument("-alg", dest="alg", default="idqn")  # "idqn", "vdn", "qmix"
+    prs.add_argument("-GAT", dest="gat", default=True)
 
     args = prs.parse_args()
     if test:
@@ -82,6 +83,8 @@ def run(test, lr, tf, bs, bas, gs):
     # pdb.set_trace()
     env = MALenv(args)
     init_st = env.reset()
+    if args.gat:
+        args.adj = env.compute_adjmatrix()
     args.agent_ids = env.agent_id
     args.ob_space = env.ob_space()
     args.action_space = env.action_space()
@@ -119,7 +122,7 @@ def run(test, lr, tf, bs, bas, gs):
 
 
 if __name__ == '__main__':
-    test_arg = True
+    test_arg = False
     lr_list = [0.0005, 0.001, 0.005]
     train_freq_list = [1, 4, 8]
     buffer_size_list = [3600, 10800, 36000]

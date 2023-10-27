@@ -1,6 +1,8 @@
 import csv
 import pdb
 from typing import Union
+
+import torch
 import traci
 import sumolib
 import os
@@ -376,5 +378,21 @@ class MALenv(gymnasium.Env):
             agents.update_target()
         return done
 
-    def compute_matrix(self):
-        pass
+    def compute_adjmatrix(self):
+        n = len(self.agent_id)
+        adj = torch.zeros((n, n))
+        it_sets = []
+        for it in self.agent_id:
+            links = traci.trafficlight.getControlledLinks(it)
+            it_set = set()
+            for link in links:
+                it_set.add(link[0][0])
+                it_set.add(link[0][1])
+            it_sets.append(it_set)
+        for i, _ in enumerate(self.agent_id):
+            for j, _ in enumerate(self.agent_id):
+                if i == j:
+                    adj[i][j] = 1
+                elif len(it_sets[i] & it_sets[j]) != 0:
+                    adj[i][j] = 1
+        return adj
