@@ -10,7 +10,6 @@ import sys
 import pandas as pd
 import numpy as np
 from utils.tl import trafficlight
-from agent.agent import Agent
 from gymnasium import spaces
 LIBSUMO = 'LIBSUMO_AS_TRACI' in os.environ
 
@@ -358,7 +357,7 @@ class MALenv(gymnasium.Env):
         #pdb.set_trace()
         self.sumo.close()
 
-    def rollout(self, agents: Agent):
+    def rollout(self, agents):
         actions = {}
         nums_collect = 0
         done = {'__all__': False}

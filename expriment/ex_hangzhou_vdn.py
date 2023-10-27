@@ -7,7 +7,7 @@ import torch
 import numpy as np
 import random
 
-#os.environ['SUMO_HOME'] = '/home/ssx/sumo'
+os.environ['SUMO_HOME'] = '/home/ssx/sumo'
 os.environ['LIBSUMO_AS_TRACI'] = '1'
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
@@ -44,6 +44,10 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
     prs.add_argument("-start_size", dest="start_size", default=300)
     prs.add_argument("-reward", dest="reward", default="queue")  # "queue", "pressure", "diffwait", "speed"
     prs.add_argument("-alg", dest="alg", default="idqn")  # "idqn", "vdn", "qmix"
+    prs.add_argument("-reward", dest="reward", default="queue") #"queue", "pressure", "diffwait", "speed"
+    prs.add_argument("-alg", dest="alg", default="idqn") #"idqn", "vdn", "qmix"
+    prs.add_argument("-rnn", dest="rnn", default=True)
+    prs.add_argument("-seq", dest="seq_len", default=30)
     prs.add_argument("-GAT", dest="gat", default=True)
 
     args = prs.parse_args()
@@ -54,14 +58,15 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
         args.batch_size = bas
         args.gradient_step = gs
     args.seed = 'random'
-    exprimenttime = str(datetime.now()).split('.')[0].replace(':', '-')
-    csv_name = '../output/hangzhou/{}_single_st_{}_{}/{}_{}_{}_{}'.format(args.alg, args.reward, exprimenttime,
-                                                                          args.lr,
-                                                                          args.gradient_step,
-                                                                          args.train_freq,
-                                                                          args.target_update_freq)
-    param_file = '../output/hangzhou/{}_single_st_{}_{}/'.format(args.alg, args.reward, exprimenttime)
+    exprimenttime = str(datetime.now()).split('.')[0]
+    csv_name = '../output/hangzhou/{}_rnn{}_GAT{}_single_st_{}_{}/{}_{}_{}_{}'.format(args.alg, args.rnn, args.gat, args.reward, exprimenttime,
+                                                                      args.lr,
+                                                                      args.gradient_step,
+                                                                      args.train_freq,
+                                                                      args.target_update_freq)
+    param_file = '../output/hangzhou/{}_rnn{}_GAT{}_single_st_{}_{}/'.format(args.alg, args.rnn, args.gat, args.reward, exprimenttime)
     xml_file = param_file + 'xml/'
+
     os.makedirs(os.path.dirname(csv_name), exist_ok=True)
     os.makedirs(os.path.dirname(xml_file), exist_ok=True)
     args.param_file = param_file
@@ -103,10 +108,14 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
         print(f"episode: {ep}/{max_episode}")
         ep_start = time.time()
         agents.update_epsilon(episode=ep, max_episode=max_episode)
+        if args.rnn:
+            agents.init_rnn()
         done = {'__all__': False}
         while not done['__all__']:
             done = env.rollout(agents=agents)
             agents.train()
+        if args.rnn:
+            agents.episode_push()
         if args.file:
             env.save_sim_info()
             env.save_episode_info(agents=agents)

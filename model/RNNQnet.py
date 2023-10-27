@@ -1,6 +1,5 @@
 import pdb
-
-import torch.nn
+import torch
 from torch import nn
 import collections
 class RNNQnet(nn.Module):
@@ -17,6 +16,8 @@ class RNNQnet(nn.Module):
 
     def forward(self, state, hidden_state):
         x = self.net1(state)
+        x = x.view(-1, self.hidden_size)
+        hidden_state = hidden_state.view(-1, self.hidden_size)
         h = self.rnn(x, hidden_state)
         q = self.net2(h)
         return q, h
