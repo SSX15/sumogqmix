@@ -44,8 +44,6 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
     prs.add_argument("-start_size", dest="start_size", default=300)
     prs.add_argument("-reward", dest="reward", default="queue")  # "queue", "pressure", "diffwait", "speed"
     prs.add_argument("-alg", dest="alg", default="idqn")  # "idqn", "vdn", "qmix"
-    prs.add_argument("-reward", dest="reward", default="queue") #"queue", "pressure", "diffwait", "speed"
-    prs.add_argument("-alg", dest="alg", default="idqn") #"idqn", "vdn", "qmix"
     prs.add_argument("-rnn", dest="rnn", default=True)
     prs.add_argument("-seq", dest="seq_len", default=30)
     prs.add_argument("-GAT", dest="gat", default=True)
