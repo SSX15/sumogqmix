@@ -27,12 +27,16 @@ class Agent(BaseAgent):
         losses = []
         train_hidden = self.init_hidden(self.batch_size)
         train_target_hidden = self.init_hidden(self.batch_size)
-        batch = self.buffer.sample(self.batch_size)
+        batch = self.buffer.sample()
         batch = self.merge_batch(batch)
         q_vs, next_q_vs = [], []
         a = batch['a'].to(self.device)
         r = batch['r'].to(self.device).squeeze(3)
         r = torch.sum(r, dim=2).reshape(self.batch_size, -1, 1)
+        #r = torch.mean(r, dim=2).reshape(self.batch_size, -1, 1)
+        if self.args.gat:
+            batch['s'] = self.gat_net(batch['s'])
+            batch['ns'] = self.gat_net(batch['ns'])
         for index in range(self.args.seq_len):
             # pdb.set_trace()
             input = batch['s'][:, index, :, :]
@@ -76,9 +80,13 @@ class Agent(BaseAgent):
             a = batch['a'].to(self.device)
             r = batch['r'].to(self.device).squeeze(2)
             r = torch.sum(r, dim=1).reshape(-1, 1)
+            #r = torch.mean(r, dim=1).reshape(-1, 1)
 
             input = batch['s']
             input_n = batch['ns']
+            if self.args.gat:
+                input = self.gat_net(input.unsqueeze(1)).squeeze(1)
+                input_n = self.gat_net(input_n.unsqueeze(1)).squeeze(1)
             eye = torch.eye(self.n_agent).unsqueeze(0).expand(self.batch_size, -1, -1)
             input = torch.cat((input, eye), dim=2).to(self.device).to(torch.float32)
             input_n = torch.cat((input_n, eye), dim=2).to(self.device).to(torch.float32)
@@ -109,24 +117,6 @@ class Agent(BaseAgent):
                 for param, target_param in zip_strict(self.vdn_net.parameters(), self.vdn_net_target.parameters()):
                     target_param.data.mul_(1 - self.tau)
                     torch.add(target_param.data, param.data, alpha=self.tau, out=target_param.data)
-
-    def merge_batch(self, batch):
-        mergebatch = {'s': np.empty((self.batch_size, self.n_agent, (self.n_ob - self.n_agent))),
-                      'a': np.empty((self.batch_size, self.n_agent, 1)),
-                      'ns': np.empty((self.batch_size, self.n_agent, self.n_ob - self.n_agent)),
-                      'r': np.empty((self.batch_size, self.n_agent, 1))}
-        for i in range(self.batch_size):
-            one_batch = batch[i]
-            for index, id in enumerate(self.agent_ids):
-                mergebatch['s'][i][index] = one_batch['s'][id]
-                mergebatch['a'][i][index] = one_batch['a'][id]
-                mergebatch['ns'][i][index] = one_batch['ns'][id]
-                mergebatch['r'][i][index] = one_batch['r'][id]
-        mergebatch['s'] = torch.as_tensor(mergebatch['s'])
-        mergebatch['a'] = torch.as_tensor(mergebatch['a'])
-        mergebatch['ns'] = torch.as_tensor(mergebatch['ns'])
-        mergebatch['r'] = torch.as_tensor(mergebatch['r'])
-        return mergebatch
 
     def reset_st(self, state):
         self.state = state

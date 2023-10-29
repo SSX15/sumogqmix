@@ -7,7 +7,7 @@ from utils.replaybuffer import ReplayBuffer, EpisodeBuffer, EpisodeMemory
 from model.QNetwork import QNetwork
 from torch.optim import  Adam
 from torch.nn import functional as F
-
+from model.GATnet import GATNet
 import numpy as np
 class BaseAgent:
     def __init__(self, args):
@@ -19,9 +19,10 @@ class BaseAgent:
         self.agent_ids = args.agent_ids
         self.n_agent = len(self.agent_ids)
         self.state = args.init_state
-        self.ob_space = args.ob_space
+        self.gl_s = args.init_gl_s
         self.action_space = args.action_space
-        self.n_ob = self.ob_space.shape[0]
+        self.tl_ob_dim = self.args.tl_ob_dim
+        self.n_ob = args.ob_dim + self.n_agent
         self.n_ac = self.action_space.n
         self.lr = args.lr
         self.epsilon_init = args.epsilon_init
@@ -37,6 +38,9 @@ class BaseAgent:
         self.param_file = args.param_file
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         if not self.load:
+            if self.args.gat:
+                self.gat_net = GATNet(args)
+                self.gat_net.to(self.device)
             if self.rnn:
                 self.q_net = RNNQnet(self.n_ob, self.n_ac)
                 self.q_net_target = RNNQnet(self.n_ob, self.n_ac)
@@ -77,6 +81,9 @@ class BaseAgent:
         q_vs, next_q_vs = [], []
         a = batch['a'].to(self.device)
         r = batch['r'].to(self.device).squeeze(3)
+        if self.args.gat:
+            batch['s'] = self.gat_net(batch['s'])
+            batch['ns'] = self.gat_net(batch['ns'])
         for index in range(self.args.seq_len):
             #pdb.set_trace()
             input = batch['s'][:, index, :, :]
@@ -120,6 +127,9 @@ class BaseAgent:
 
             input = batch['s']
             input_n = batch['ns']
+            if self.args.gat:
+                input = self.gat_net(input.unsqueeze(1)).squeeze(1)
+                input_n = self.gat_net(input_n.unsqueeze(1)).squeeze(1)
             eye = torch.eye(self.n_agent).unsqueeze(0).expand(self.batch_size, -1, -1)
             input = torch.cat((input, eye), dim=2).to(self.device).to(torch.float32)
             input_n = torch.cat((input_n, eye), dim=2).to(self.device).to(torch.float32)
@@ -138,17 +148,18 @@ class BaseAgent:
             self.optimizer.step()
         self.loss.append(np.mean(losses))
 
-    def update_state(self, next_st):
+    def update_state(self, next_st, gl_ns):
         self.state = next_st
+        self.gl_s = gl_ns
     def timestep_plus(self):
         self.timestep += 1
 
-    def buffer_push(self, action, next_st, r):
+    def buffer_push(self, action, next_st, r, gl_ns):
         if self.rnn:
-            transition = [self.state, action, next_st, r]
+            transition = [self.state, action, next_st, r, self.gl_s, gl_ns]
             self.cur_episode.push(transition=transition)
         else:
-            self.buffer.push(self.state, action, next_st, r)
+            self.buffer.push(self.state, action, next_st, r, self.gl_s, gl_ns)
 
     def episode_push(self):
         self.buffer.push(self.cur_episode)
@@ -168,7 +179,10 @@ class BaseAgent:
             self.epsilon = 0
 
     def predict(self, agent_id):
-        input = self.state[agent_id]
+        if self.args.gat:
+            input = self.gat_state[agent_id].numpy()
+        else:
+            input = self.state[agent_id]
         index = self.agent_ids.index(agent_id)
         index_hot = np.zeros(self.n_agent)
         index_hot[index] = 1
@@ -199,10 +213,12 @@ class BaseAgent:
 
     def merge_batch(self, batch):
         if self.rnn:
-            mergebatch = {'s': np.empty((self.batch_size, self.args.seq_len, self.n_agent, (self.n_ob - self.n_agent))),
+            mergebatch = {'s': np.empty((self.batch_size, self.args.seq_len, self.n_agent, self.tl_ob_dim)),
                           'a': np.empty((self.batch_size, self.args.seq_len, self.n_agent, 1)),
-                          'ns': np.empty((self.batch_size, self.args.seq_len, self.n_agent, self.n_ob - self.n_agent)),
-                          'r': np.empty((self.batch_size, self.args.seq_len, self.n_agent, 1))}
+                          'ns': np.empty((self.batch_size, self.args.seq_len, self.n_agent, self.tl_ob_dim)),
+                          'r': np.empty((self.batch_size, self.args.seq_len, self.n_agent, 1)),
+                          'gl_s': np.empty((self.batch_size, self.args.seq_len, self.args.gl_s_dim)),
+                          'gl_ns': np.empty((self.batch_size, self.args.seq_len, self.args.gl_s_dim))}
             for i in range(self.batch_size):
                 for seq_index in range(self.args.seq_len):
                     one_batch = batch[i]
@@ -211,16 +227,22 @@ class BaseAgent:
                         mergebatch['a'][i][seq_index][index] = one_batch['a'][seq_index][id]
                         mergebatch['ns'][i][seq_index][index] = one_batch['ns'][seq_index][id]
                         mergebatch['r'][i][seq_index][index] = one_batch['r'][seq_index][id]
-            mergebatch['s'] = torch.as_tensor(mergebatch['s'])
-            mergebatch['a'] = torch.as_tensor(mergebatch['a'])
-            mergebatch['ns'] = torch.as_tensor(mergebatch['ns'])
-            mergebatch['r'] = torch.as_tensor(mergebatch['r'])
+                    mergebatch['gl_s'][i][seq_index] = one_batch['gl_s'][seq_index]
+                    mergebatch['gl_ns'][i][seq_index] = one_batch['gl_ns'][seq_index]
+            mergebatch['s'] = torch.as_tensor(mergebatch['s']).to(self.device).to(torch.float32)
+            mergebatch['a'] = torch.as_tensor(mergebatch['a']).to(self.device).to(torch.float32)
+            mergebatch['ns'] = torch.as_tensor(mergebatch['ns']).to(self.device).to(torch.float32)
+            mergebatch['r'] = torch.as_tensor(mergebatch['r']).to(self.device).to(torch.float32)
+            mergebatch['gl_s'] = torch.as_tensor(mergebatch['gl_s']).to(self.device).to(torch.float32)
+            mergebatch['gl_ns'] = torch.as_tensor(mergebatch['gl_ns']).to(self.device).to(torch.float32)
             return mergebatch
         else:
-            mergebatch = {'s': np.empty((self.batch_size, self.n_agent, (self.n_ob - self.n_agent))),
+            mergebatch = {'s': np.empty((self.batch_size, self.n_agent, self.tl_ob_dim)),
                           'a': np.empty((self.batch_size, self.n_agent, 1)),
-                          'ns': np.empty((self.batch_size, self.n_agent, self.n_ob - self.n_agent)),
-                          'r': np.empty((self.batch_size, self.n_agent, 1))}
+                          'ns': np.empty((self.batch_size, self.n_agent, self.tl_ob_dim)),
+                          'r': np.empty((self.batch_size, self.n_agent, 1)),
+                          'gl_s': np.empty((self.batch_size, self.args.gl_s_dim)),
+                          'gl_ns': np.empty((self.batch_size, self.args.gl_s_dim))}
             for i in range(self.batch_size):
                 one_batch = batch[i]
                 for index, id in enumerate(self.agent_ids):
@@ -228,14 +250,19 @@ class BaseAgent:
                     mergebatch['a'][i][index] = one_batch['a'][id]
                     mergebatch['ns'][i][index] = one_batch['ns'][id]
                     mergebatch['r'][i][index] = one_batch['r'][id]
-            mergebatch['s'] = torch.as_tensor(mergebatch['s'])
-            mergebatch['a'] = torch.as_tensor(mergebatch['a'])
-            mergebatch['ns'] = torch.as_tensor(mergebatch['ns'])
-            mergebatch['r'] = torch.as_tensor(mergebatch['r'])
+                mergebatch['gl_s'][i] = one_batch['gl_s']
+                mergebatch['gl_ns'][i] = one_batch['gl_ns']
+            mergebatch['s'] = torch.as_tensor(mergebatch['s']).to(self.device).to(torch.float32)
+            mergebatch['a'] = torch.as_tensor(mergebatch['a']).to(self.device).to(torch.float32)
+            mergebatch['ns'] = torch.as_tensor(mergebatch['ns']).to(self.device).to(torch.float32)
+            mergebatch['r'] = torch.as_tensor(mergebatch['r']).to(self.device).to(torch.float32)
+            mergebatch['gl_s'] = torch.as_tensor(mergebatch['gl_s']).to(self.device).to(torch.float32)
+            mergebatch['gl_ns'] = torch.as_tensor(mergebatch['gl_ns']).to(self.device).to(torch.float32)
             return mergebatch
 
-    def reset_st(self, state):
+    def reset_st(self, state, gl_s):
         self.state = state
+        self.gl_s = gl_s
 
     def init_rnn(self):
         self.hidden_state = self.init_hidden(1)
@@ -244,6 +271,20 @@ class BaseAgent:
 
     def init_hidden(self, ep_num):
         return torch.zeros(ep_num, self.n_agent, 64).to(self.device).to(torch.float32)
+
+    def get_gat_state(self):
+        gat_state = []
+        for (k, v) in self.state.items():
+            gat_state.append(v)
+        gat_state = np.array(gat_state)
+        gat_state = torch.from_numpy(gat_state).to(self.device).to(torch.float32).unsqueeze(0).unsqueeze(0)
+        with torch.no_grad():
+            gat_state = self.gat_net(gat_state)
+        self.gat_state = self.state.copy()
+        for i, (k, _) in enumerate(self.gat_state.items()):
+            self.gat_state[k] = gat_state[0][0][i]
+
+
     def save_parameters(self):
         qnet_path = self.param_file + '{}_qnet.pt'.format(self.agent_id)
         target_path = self.param_file + '{}_target.pt'.format(self.agent_id)

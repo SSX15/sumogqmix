@@ -43,9 +43,9 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
     prs.add_argument("-buffer_size", dest="buffer_size", default=36000)
     prs.add_argument("-start_size", dest="start_size", default=300)
     prs.add_argument("-reward", dest="reward", default="queue")  # "queue", "pressure", "diffwait", "speed"
-    prs.add_argument("-alg", dest="alg", default="idqn")  # "idqn", "vdn", "qmix"
-    prs.add_argument("-rnn", dest="rnn", default=True)
-    prs.add_argument("-seq", dest="seq_len", default=30)
+    prs.add_argument("-alg", dest="alg", default="qmix")  # "idqn", "vdn", "qmix"
+    prs.add_argument("-rnn", dest="rnn", default=False)
+    prs.add_argument("-seq", dest="seq_len", default=8)
     prs.add_argument("-GAT", dest="gat", default=True)
 
     args = prs.parse_args()
@@ -56,7 +56,7 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
         args.batch_size = bas
         args.gradient_step = gs
     args.seed = 'random'
-    exprimenttime = str(datetime.now()).split('.')[0]
+    exprimenttime = str(datetime.now()).split('.')[0].replace(':', '-')
     csv_name = '../output/hangzhou/{}_rnn{}_GAT{}_single_st_{}_{}/{}_{}_{}_{}'.format(args.alg, args.rnn, args.gat, args.reward, exprimenttime,
                                                                       args.lr,
                                                                       args.gradient_step,
@@ -85,13 +85,18 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
 
     # pdb.set_trace()
     env = MALenv(args)
-    init_st = env.reset()
-    if args.gat:
-        args.adj = env.compute_adjmatrix()
+    init_st, init_gl_s = env.reset()
     args.agent_ids = env.agent_id
-    args.ob_space = env.ob_space()
+    args.tl_ob_dim = env.ob_space().shape[0]
+    args.ob_dim = args.tl_ob_dim
+    args.gl_s_dim = 2 * 16
     args.action_space = env.action_space()
     args.init_state = init_st
+    args.init_gl_s = init_gl_s
+    if args.gat:
+        args.adj = env.compute_adjmatrix()
+        args.gat_dim = 128
+        args.ob_dim = args.gat_dim
     if args.alg == "idqn":
         from agent.IDQNagent import Agent
     elif args.alg == "vdn":
@@ -119,8 +124,8 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
             env.save_episode_info(agents=agents)
         env.close()
         if ep != max_episode - 1:
-            new_st = env.reset()
-            agents.reset_st(state=new_st)
+            new_st, gl_s = env.reset()
+            agents.reset_st(state=new_st, gl_s=gl_s)
         print(f"ep{ep} cost {time.time() - ep_start}")
     if args.save_param:
         agents.save_parameters()

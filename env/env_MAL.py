@@ -72,6 +72,7 @@ class MALenv(gymnasium.Env):
         self.metrics = []
         self.action_save = []
         self.states = {agent: None for agent in self.agent_id}
+        self.gl_s = None
         self.rewards = {agent: None for agent in self.agent_id}
         self.train_freq = args.train_freq
 
@@ -138,9 +139,10 @@ class MALenv(gymnasium.Env):
 
         st = self.compute_st()
         r = self.compute_r()
+        gl_s = self.compute_gl_s()
         dones = self.compute_done()
         self.compute_info_dqn(r=r)
-        return st, r, dones
+        return st, r, gl_s, dones
 
     def reset(self, seed=None, **kwargs):
         super().reset(seed=seed, **kwargs)
@@ -164,104 +166,25 @@ class MALenv(gymnasium.Env):
                                                sumo=self.sumo,
                                                agent_n=len(self.agent_id)) for a_id in self.agent_id}
         self.compute_info_dqn()
-        return self.compute_st()
+        return self.compute_st(), self.compute_gl_s()
 
     def compute_st(self): #single ob
         self.states.update({a_id: self.trafficlights[a_id].get_state() for a_id in self.agent_id})
         return {a_id: self.states[a_id] for a_id in self.agent_id if self.trafficlights[a_id].time_to_act}
 
-
-    def compute_st1(self): #partial ob
-        s = {}
+    def compute_gl_s(self):
+        gl_s = []
         for a_id in self.agent_id:
-            s[a_id] = self.trafficlights[a_id].get_state()
-        for a_id in self.agent_id:
-            tmp = np.empty(0, dtype=np.float32)
-            for id in self.node_map[a_id]:
-                tmp = np.hstack((tmp, s[id]))
-            self.states.update({a_id: tmp})
-        return self.states
-
-
-    def compute_st2(self): #all edge, independent light
-
-        speed_limit = 30
-        state = []
-        for a_id in self.agent_id:
-            queue = []
-            speed = []
-            for edge in self.mapping[a_id]:
-                queue.append(self.sumo.edge.getLastStepHaltingNumber(edge)/self.sumo.edge.getLaneNumber(edge))
-                speed.append(self.sumo.edge.getLastStepMeanSpeed(edge)/speed_limit)
-            state.append(queue)
-            state.append(speed)
-        for a_id in self.agent_id:
-            #pdb.set_trace()
-            s = state[:]
-            s.append(self.curphase_hot[a_id])
-            s = np.array(np.concatenate(s), dtype=np.float32)
-            self.states.update({a_id: s})
-        return self.states
-
-    def compute_st3(self): #independent state
-        speed_limit = 30
-        for a_id in self.agent_id:
-            state = []
-            queue = []
-            speed = []
-            for edge in self.mapping[a_id]:
-                unit = []
-                #queue.append(self.sumo.edge.getLastStepHaltingNumber(edge)/self.sumo.edge.getLaneNumber(edge))
-                #speed.append(self.sumo.edge.getLastStepMeanSpeed(edge)/speed_limit)
-                unit.append(self.sumo.edge.getLastStepHaltingNumber(edge)/self.sumo.edge.getLaneNumber(edge))
-                unit.append(self.sumo.edge.getLastStepMeanSpeed(edge) / speed_limit)
-                state.append(unit)
-            state.append(self.curphase_hot[a_id])
-            state = np.array(np.concatenate(state), dtype=np.float32)
-            self.states.update({a_id: state})
-        #pdb.set_trace()
-        return self.states
+            queue = self.trafficlights[a_id].get_lane_queue()
+            speed = self.trafficlights[a_id].get_lane_speed()
+            gl_s.append(sum(queue) / len(queue))
+            gl_s.append(sum(speed) / len(speed))
+        gl_s = np.array(gl_s, dtype=np.float32)
+        return gl_s
 
     def compute_r(self):
         self.rewards.update({a_id: self.trafficlights[a_id].get_reward() for a_id in self.agent_id})
         return {a_id: self.rewards[a_id] for a_id in self.agent_id if self.trafficlights[a_id].time_to_act}
-
-
-    def compute_r1(self):#same weight reward
-        reward = 0
-        r_dict = {}
-        for a_id in self.agent_id:
-            r = self.trafficlights[a_id].get_reward()
-            reward += r/2
-            r_dict[a_id] = r
-        for a_id in self.agent_id:
-            self.rewards[a_id] = reward + r_dict[a_id]/2
-        #pdb.set_trace()
-        return self.rewards
-
-    def compute_r1(self):#same sum reward
-        reward = 0
-        #r_dict = {}
-        for a_id in self.agent_id:
-            r = self.trafficlights[a_id].get_reward()
-            reward += r
-            #r_dict[a_id] = r
-        for a_id in self.agent_id:
-            self.rewards[a_id] = reward
-        #pdb.set_trace()
-        return self.rewards
-
-
-    def compute_r2(self): #independent
-        for a_id in self.agent_id:
-            queues = []
-            for edge in self.mapping[a_id]:
-                queue = self.sumo.edge.getLastStepHaltingNumber(edge)
-                queues.append(queue)
-                queue_all = np.sum(queues) if len(queues) else 0
-            r = -queue_all
-            self.rewards.update({a_id: r})
-        return self.rewards
 
     def compute_done(self):
         dones = {a_id: False for a_id in self.agent_id}
@@ -342,16 +265,8 @@ class MALenv(gymnasium.Env):
 
     def ob_space(self):
         return self.trafficlights[self.agent_id[0]].ob_space
-    def ob_space1(self): #cus
-        self.ob_space = spaces.Box(low=0, high=1000, shape=(57,), dtype=np.float32)
-        return self.ob_space
-
     def action_space(self):
         return self.trafficlights[self.agent_id[0]].action_space
-
-    def action_space1(self): #cus
-        self.action_space = spaces.Discrete(2)
-        return self.action_space
 
     def close(self):
         #pdb.set_trace()
@@ -362,18 +277,20 @@ class MALenv(gymnasium.Env):
         nums_collect = 0
         done = {'__all__': False}
         while nums_collect < self.train_freq and not done['__all__']:
+            if self.args.gat:
+                agents.get_gat_state()
             for id in self.agent_id:
                 action = agents.choose_action(agent_id=id)
                 action = action.item()
                 actions.update({id: action})
             self.action_save.append(actions)
-            next_st, r, done = self.step_dqn(actions=actions)
+            next_st, r, gl_ns, done = self.step_dqn(actions=actions)
             if done['__all__']:
                 return done
             nums_collect += 1
             agents.timestep_plus()
-            agents.buffer_push(action=actions, next_st=next_st, r=r)
-            agents.update_state(next_st=next_st)
+            agents.buffer_push(action=actions, next_st=next_st, r=r, gl_ns=gl_ns)
+            agents.update_state(next_st=next_st, gl_ns=gl_ns)
             agents.update_target()
         return done
 

@@ -9,8 +9,8 @@ class ReplayBuffer:
         #self.memory = np.zeros((self.buffer_size, *self.state_shape), state_space.dtype)
         self.memory = []
         self.pos = 0
-    def push(self, state, aciton, nextstate, reward):
-        transition = {'s': state, 'a': aciton, 'ns': nextstate, 'r': reward}
+    def push(self, state, aciton, nextstate, reward, gl_s, gl_ns):
+        transition = {'s': state, 'a': aciton, 'ns': nextstate, 'r': reward, 'gl_s': gl_s, 'gl_ns': gl_ns}
         if self.pos > self.buffer_size:
             curpos = self.pos % self.buffer_size
             self.memory[curpos].update(transition)
@@ -31,12 +31,12 @@ class ReplayBuffer2:
     def __init__(self, args):
         self.buffer_size = args.buffer_size
         self.n_agent = len(args.agent_ids)
-        self.ob_space = args.ob_space
+        self.ob_dim = args.ob_dim
         #self.memory = np.zeros((self.buffer_size, *self.state_shape), state_space.dtype)
         self.memory = {
-            "s": np.empty([self.buffer_size, self.n_agent, self.ob_space]),
+            "s": np.empty([self.buffer_size, self.n_agent, self.ob_dim]),
             "a": np.empty([self.buffer_size, self.n_agent, 1]),
-            "n_s": np.empty([self.buffer_size, self.n_agent, self.ob_space]),
+            "n_s": np.empty([self.buffer_size, self.n_agent, self.ob_dim]),
             "r": np.empty([self.buffer_size, self.n_agent, 1])
         }
         self.pos = 0
@@ -86,6 +86,8 @@ class EpisodeBuffer:
         self.a = []
         self.r = []
         self.n_s = []
+        self.gl_s = []
+        self.gl_ns = []
         #self.done = []
 
     def push(self, transition):
@@ -93,6 +95,8 @@ class EpisodeBuffer:
         self.a.append(transition[1])
         self.n_s.append(transition[2])
         self.r.append(transition[3])
+        self.gl_s.append(transition[4])
+        self.gl_ns.append(transition[5])
         #self.done.append(transition[4])
 
     def sample(self, idx, seq_len):
@@ -100,14 +104,18 @@ class EpisodeBuffer:
         a = np.array(self.a)
         r = np.array(self.r)
         n_s = np.array(self.n_s)
+        gl_s = np.array(self.gl_s)
+        gl_ns = np.array(self.gl_ns)
         #done = np.array(self.done)
 
         s = s[idx:idx+seq_len]
         a = a[idx:idx+seq_len]
         r = r[idx:idx+seq_len]
         n_s = n_s[idx:idx+seq_len]
+        gl_s = gl_s[idx:idx + seq_len]
+        gl_ns = gl_ns[idx:idx + seq_len]
         #done = done[idx:idx+seq_len]
-        return dict(s=s, a=a, r=r, ns=n_s)
+        return dict(s=s, a=a, r=r, ns=n_s, gl_s=gl_s, gl_ns=gl_ns)
 
     def len(self):
         return len(self.s)

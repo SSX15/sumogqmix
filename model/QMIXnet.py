@@ -7,10 +7,9 @@ class QMIXnet(nn.Module):
         super(QMIXnet, self).__init__()
         self.agent_ids = args.agent_ids
         self.n_agent = len(self.agent_ids)
-        self.ob_space = args.ob_space
         self.qmix_hidden_dim = 64
         self.hyper_hidden_dim = 64
-        self.state_shape = (self.ob_space.shape[0] - 16) * self.n_agent
+        self.state_shape = args.gl_s_dim
         #超网络的两层全连接参数
         self.hyper_w1 = nn.Sequential(nn.Linear(self.state_shape, self.hyper_hidden_dim),
                                       nn.ReLU(),

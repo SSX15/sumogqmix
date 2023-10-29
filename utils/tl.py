@@ -38,7 +38,7 @@ class trafficlight:
 
         #self.lanes_length = {lane: traci.lane.getLength()}
         self.init_phase()
-        self.ob_space = spaces.Box(low=np.zeros(self.num_green_phases+1+2*len(self.lanes)+self.agent_n, dtype=np.float32), high=np.ones(self.num_green_phases+1+2*len(self.lanes)+self.agent_n, dtype=np.float32))
+        self.ob_space = spaces.Box(low=np.zeros(self.num_green_phases+1+2*len(self.lanes), dtype=np.float32), high=np.ones(self.num_green_phases+1+2*len(self.lanes), dtype=np.float32))
         #self.ob_space = spaces.Box(low=np.zeros(2*len(self.lanes)+self.agent_n, dtype=np.float32), high=np.ones(2*len(self.lanes)+self.agent_n, dtype=np.float32))
         self.action_space = spaces.Discrete(self.num_green_phases)
         self.reward = None
@@ -144,8 +144,8 @@ class trafficlight:
         return density
 
     def get_lane_queue(self):
-        #lane_queue = [traci.lane.getLastStepHaltingNumber(lane_id) * (traci.lane.getLastStepLength(lane_id) + 2.5) / traci.lane.getLength(lane_id) for lane_id in self.lanes]
-        lane_queue = [traci.lane.getLastStepHaltingNumber(lane_id) for lane_id in self.lanes]
+        lane_queue = [traci.lane.getLastStepHaltingNumber(lane_id) * (traci.lane.getLastStepLength(lane_id) + 2.5) / traci.lane.getLength(lane_id) for lane_id in self.lanes]
+        #lane_queue = [traci.lane.getLastStepHaltingNumber(lane_id) for lane_id in self.lanes]
         return lane_queue
 
     def get_lane_speed(self):

@@ -122,20 +122,22 @@ class GATNet(nn.Module):
     def __init__(self, args):
         super(GATNet, self).__init__()
         self.args = args
-        self.input_dim = self.args.ob_space.shape[0]
-        self.heads = 4
+        self.adj = args.adj
+        self.input_dim = self.args.tl_ob_dim
+        self.gat_dim = self.args.gat_dim
+        self.heads = 1
         self.eb = nn.Sequential(
-            nn.Linear(self.input_dim, 128),
+            nn.Linear(self.input_dim, 64),
             nn.ReLU(),
-            nn.Linear(128, 128),
+            nn.Linear(64, 128),
             nn.ReLU()
         )
 
-        self.gat = GAT(nfeat=128, nhid=128, nclass=128, dropout=0, alpha=1, nheads=self.heads)
+        self.gat = GAT(nfeat=self.gat_dim, nhid=self.gat_dim, nclass=self.gat_dim, dropout=0, alpha=1, nheads=self.heads)
 
 
 
-    def forward(self, x):
+    def forward(self, x): #x:(batch, seq_len, n, feature)
         x = self.eb(x)
         x = self.gat(x, self.adj)
         return x
