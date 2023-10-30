@@ -88,9 +88,9 @@ class BaseAgent:
             #pdb.set_trace()
             input = batch['s'][:, index, :, :]
             input_n = batch['ns'][:, index, :, :]
-            eye = torch.eye(self.n_agent).unsqueeze(0).expand(self.batch_size, -1, -1)
-            input = torch.cat((input, eye), dim=2).to(self.device).to(torch.float32)
-            input_n = torch.cat((input_n, eye), dim=2).to(self.device).to(torch.float32)
+            eye = torch.eye(self.n_agent).unsqueeze(0).expand(self.batch_size, -1, -1).to(self.device).to(torch.float32)
+            input = torch.cat((input, eye), dim=2)
+            input_n = torch.cat((input_n, eye), dim=2)
 
             q_v, train_hidden = self.q_net(input, train_hidden)
             next_q_v, train_target_hidden = self.q_net_target(input_n, train_target_hidden)
@@ -130,9 +130,9 @@ class BaseAgent:
             if self.args.gat:
                 input = self.gat_net(input.unsqueeze(1)).squeeze(1)
                 input_n = self.gat_net(input_n.unsqueeze(1)).squeeze(1)
-            eye = torch.eye(self.n_agent).unsqueeze(0).expand(self.batch_size, -1, -1)
-            input = torch.cat((input, eye), dim=2).to(self.device).to(torch.float32)
-            input_n = torch.cat((input_n, eye), dim=2).to(self.device).to(torch.float32)
+            eye = torch.eye(self.n_agent).unsqueeze(0).expand(self.batch_size, -1, -1).to(self.device).to(torch.float32)
+            input = torch.cat((input, eye), dim=2)
+            input_n = torch.cat((input_n, eye), dim=2)
 
             q_v = self.q_net(input)
             next_q_v = self.q_net_target(input_n).max(dim=2)[0]
@@ -180,7 +180,7 @@ class BaseAgent:
 
     def predict(self, agent_id):
         if self.args.gat:
-            input = self.gat_state[agent_id].numpy()
+            input = self.gat_state[agent_id].cpu().numpy()
         else:
             input = self.state[agent_id]
         index = self.agent_ids.index(agent_id)
