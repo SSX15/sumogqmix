@@ -68,7 +68,6 @@ class Agent(BaseAgent):
         torch.nn.utils.clip_grad_norm_(self.q_net.parameters(), self.max_gradient)
         self.optimizer.step()
         self.loss.append(np.mean(losses))
-
     def no_rnn_train(self):
         if (self.buffer.len()) < self.start_size:
             return

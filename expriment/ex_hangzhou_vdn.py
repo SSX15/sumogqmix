@@ -7,7 +7,7 @@ import torch
 import numpy as np
 import random
 
-os.environ['SUMO_HOME'] = '/home/ssx/sumo'
+#os.environ['SUMO_HOME'] = '/home/ssx/sumo'
 os.environ['LIBSUMO_AS_TRACI'] = '1'
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
@@ -33,7 +33,7 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
     prs.add_argument("-gamma", dest="gamma", default=0.99)
     prs.add_argument("-gradient_step", dest="gradient_step", default=1)
     prs.add_argument("-train_freq", dest="train_freq", default=1)
-    prs.add_argument("-target_update_freq", dest="target_update_freq", default=1000)
+    prs.add_argument("-target_update_freq", dest="target_update_freq", default=720)
     prs.add_argument("-savefile", dest="file", default=True)
     prs.add_argument("-saveparam", dest="save_param", default=False)
     prs.add_argument("-load", dest="load", default=False)
@@ -74,6 +74,7 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
     args.csv_name = csv_name
     args.epsilon_init = 0
     args.yellow_time = 3
+    args.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     with open(param_file + 'args.json', 'w') as file:
         json.dump(vars(args), file)
 
@@ -95,7 +96,7 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
     args.init_gl_s = init_gl_s
     if args.gat:
         args.adj = env.compute_adjmatrix()
-        args.gat_dim = 128
+        args.gat_dim = 64
         args.ob_dim = args.gat_dim
     if args.alg == "idqn":
         from agent.IDQNagent import Agent

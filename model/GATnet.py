@@ -122,14 +122,12 @@ class GATNet(nn.Module):
     def __init__(self, args):
         super(GATNet, self).__init__()
         self.args = args
-        self.adj = args.adj
+        self.adj = args.adj.to(self.args.device)
         self.input_dim = self.args.tl_ob_dim
         self.gat_dim = self.args.gat_dim
         self.heads = 1
         self.eb = nn.Sequential(
             nn.Linear(self.input_dim, 64),
-            nn.ReLU(),
-            nn.Linear(64, 128),
             nn.ReLU()
         )
 
