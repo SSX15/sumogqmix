@@ -36,7 +36,7 @@ class BaseAgent:
             self.buffer = ReplayBuffer(args)
         self.load = args.load
         self.param_file = args.param_file
-        self.device = self.args.devicecx
+        self.device = self.args.device
         if not self.load:
             if self.args.gat:
                 self.gat_net = GATNet(args)
