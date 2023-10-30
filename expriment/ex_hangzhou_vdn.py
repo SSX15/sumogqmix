@@ -74,9 +74,9 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
     args.csv_name = csv_name
     args.epsilon_init = 0
     args.yellow_time = 3
-    args.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     with open(param_file + 'args.json', 'w') as file:
         json.dump(vars(args), file)
+    args.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
     if args.seed != 'random':
         seed = args.seed
