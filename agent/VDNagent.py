@@ -27,7 +27,7 @@ class Agent(BaseAgent):
         losses = []
         train_hidden = self.init_hidden(self.batch_size)
         train_target_hidden = self.init_hidden(self.batch_size)
-        batch = self.buffer.sample(self.batch_size)
+        batch = self.buffer.sample()
         batch = self.merge_batch(batch)
         q_vs, next_q_vs = [], []
         a = batch['a'].to(self.device)

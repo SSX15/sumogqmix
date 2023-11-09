@@ -7,7 +7,7 @@ import torch
 import numpy as np
 import random
 
-os.environ['SUMO_HOME'] = '/home/ssx/sumo'
+#os.environ['SUMO_HOME'] = '/home/ssx/sumo'
 os.environ['LIBSUMO_AS_TRACI'] = '1'
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
@@ -32,7 +32,7 @@ if __name__ == '__main__':
     prs.add_argument("-lr", dest="lr", default=0.001)
     prs.add_argument("-gamma", dest="gamma", default=0.99)
     prs.add_argument("-gradient_step", dest="gradient_step", default=1)
-    prs.add_argument("-train_freq", dest="train_freq", default=100)
+    prs.add_argument("-train_freq", dest="train_freq", default=1)
     prs.add_argument("-target_update_freq", dest="target_update_freq", default=3600)
     prs.add_argument("-savefile", dest="file", default=True)
     prs.add_argument("-saveparam", dest="save_param", default=False)
@@ -48,15 +48,15 @@ if __name__ == '__main__':
     prs.add_argument("-seq", dest="seq_len", default=30)
     args = prs.parse_args()
     args.seed = 'random'
-    exprimenttime = str(datetime.now()).split('.')[0]
+    exprimenttime = str(datetime.now()).split('.')[0].replace(':', '-')
     csv_name = '../output/hangzhou/{}_rnn{}_single_st_{}_{}/{}_{}_{}_{}'.format(args.alg, args.rnn, args.reward, exprimenttime,
                                                                       args.lr,
                                                                       args.gradient_step,
                                                                       args.train_freq,
                                                                       args.target_update_freq)
     param_file = '../output/hangzhou/{}_rnn{}_single_st_{}_{}/'.format(args.alg, args.rnn, args.reward, exprimenttime)
-    xml_file = "../output/hangzhou/xml/"
-    #args.xml_file = xml_file
+    xml_file = param_file + "xml/"
+
     os.makedirs(os.path.dirname(csv_name), exist_ok=True)
     os.makedirs(os.path.dirname(xml_file), exist_ok=True)
     args.param_file = param_file
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     agents = Agent(args)
 
 
-    max_episode = 200
+    max_episode = 150
     start_time = time.time()
     for ep in range(max_episode):
         print(f"episode: {ep}/{max_episode}")

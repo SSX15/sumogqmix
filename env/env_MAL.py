@@ -91,7 +91,7 @@ class MALenv(gymnasium.Env):
         self.cur_phase = {a_id: 0 for a_id in self.agent_id}
 
     def start(self):
-        xml_file = f"../output/hangzhou/xml/{self.run}.xml"
+        xml_file = self.args.param_file + "/xml/" + f"{self.run}.xml"
         sumo_cmd = [self.sumo_binary,
                     '-n', self.net,
                     '-r', self.route,
