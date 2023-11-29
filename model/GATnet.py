@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+from env.env_MAL import att_list
 
 class GraphAttentionLayer(nn.Module):
 
@@ -29,7 +29,7 @@ class GraphAttentionLayer(nn.Module):
 
         self.leakyrelu = nn.LeakyReLU(self.alpha)
 
-    def forward(self, h, adj):
+    def forward(self, h, adj, eval=False):
         # h.shape: (N, in_features), Wh.shape: (N, out_features)
         Wh = torch.matmul(h, self.W)
 
@@ -48,6 +48,8 @@ class GraphAttentionLayer(nn.Module):
         attention = F.softmax(attention, dim=3)
         attention = F.dropout(attention, self.dropout, training=self.training)
 
+        if eval:
+            att_list.append(attention.view(-1).tolist())
         # 输出结合注意力系数的特征矩阵
         h_prime = torch.matmul(attention, Wh)
 
@@ -107,11 +109,11 @@ class GAT(nn.Module):
         self.out_att = GraphAttentionLayer(nhid * nheads, nclass, dropout=dropout, alpha=alpha, concat=False)
 
     # GAT的计算方式
-    def forward(self, x, adj):
+    def forward(self, x, adj, eval=False):
         x = F.dropout(x, self.dropout, training=self.training)
 
         # 计算并拼接由多头注意力所产生的特征矩阵
-        x = torch.cat([att(x, adj) for att in self.attentions], dim=3)
+        x = torch.cat([att(x, adj, eval) for att in self.attentions], dim=3)
         x = F.dropout(x, self.dropout, training=self.training)
         # 特征矩阵经由输出层得到最终的模型输出
         x = F.elu(self.out_att(x, adj))
@@ -135,9 +137,9 @@ class GATNet(nn.Module):
 
 
 
-    def forward(self, x): #x:(batch, seq_len, n, feature)
+    def forward(self, x, eval=False): #x:(batch, seq_len, n, feature)
         x = self.eb(x)
-        x = self.gat(x, self.adj)
+        x = self.gat(x, self.adj, eval)
         return x
 
 

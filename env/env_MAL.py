@@ -11,6 +11,8 @@ import pandas as pd
 import numpy as np
 from utils.tl import trafficlight
 from gymnasium import spaces
+global att_list
+att_list = []
 LIBSUMO = 'LIBSUMO_AS_TRACI' in os.environ
 
 if 'SUMO_HOME' in os.environ:
@@ -312,3 +314,52 @@ class MALenv(gymnasium.Env):
                 elif len(it_sets[i] & it_sets[j]) != 0:
                     adj[i][j] = 1
         return adj
+
+    def evaluate(self, agents):
+        actions = {}
+        done = {'__all__': False}
+        eva_lights = ["intersection_2_3", "intersection_2_2", "intersection_2_4", "intersection_1_3", "intersection_3_3"]
+        eva_speed = {}
+        eva_queue = {}
+        eva_carnums = {}
+        eva_occup = {}
+        data_eva = [eva_speed, eva_queue, eva_carnums, eva_occup]
+        f_eva_speed = self.episode_file + 'eva_speed.csv'
+        f_eva_queue = self.episode_file + 'eva_queue.csv'
+        f_eva_carnums = self.episode_file + 'eva_carnums.csv'
+        f_eva_occup = self.episode_file + 'eva_occup.csv'
+        f_eva = [f_eva_speed, f_eva_queue, f_eva_carnums, f_eva_occup]
+        while not done['__all__']:
+            for tl in eva_lights:
+                for lane in traci.trafficlight.getControlledLanes(tl):
+                    eva_speed.update({lane: traci.lane.getLastStepMeanSpeed(lane)})
+                    eva_queue.update({lane: traci.lane.getLastStepHaltingNumber(lane)})
+                    eva_carnums.update({lane: traci.lane.getLastStepVehicleNumber(lane)})
+                    eva_occup.update({lane: traci.lane.getLastStepOccupancy(lane)})
+            for index, file in enumerate(f_eva):
+                fileexist = os.path.isfile(file)
+                with open(file, 'a') as f:
+                    f_writer = csv.DictWriter(f, fieldnames=data_eva[index].keys())
+                    if not fileexist:
+                        f_writer.writeheader()
+                    f_writer.writerow(data_eva[index])
+            if self.args.gat:
+                agents.get_gat_state_eval()
+            for id in self.agent_id:
+                action = agents.choose_action(agent_id=id)
+                action = action.item()
+                actions.update({id: action})
+            self.action_save.append(actions)
+            next_st, r, gl_ns, done = self.step_dqn(actions=actions)
+            agents.update_state(next_st=next_st, gl_ns=gl_ns)
+        f_att = self.episode_file + 'att.csv'
+        att_result= []
+        tmp = {}
+        for att in att_list:
+            for i in range(16):
+                for j in range(16):
+                    tmp.update({f"{i}_{j}": att[i*16+j]})
+            att_result.append(tmp)
+        df = pd.DataFrame(att_result)
+        with open(f_att, 'a') as f:
+            df.to_csv(f, index=False, header=f.tell()==0)
