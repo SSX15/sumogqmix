@@ -43,10 +43,10 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
     prs.add_argument("-buffer_size", dest="buffer_size", default=36000)
     prs.add_argument("-start_size", dest="start_size", default=300)
     prs.add_argument("-reward", dest="reward", default="queue")  # "queue", "pressure", "diffwait", "speed"
-    prs.add_argument("-alg", dest="alg", default="qmix")  # "idqn", "vdn", "qmix"
+    prs.add_argument("-alg", dest="alg", default="idqn")  # "idqn", "vdn", "qmix"
     prs.add_argument("-rnn", dest="rnn", default=False)
     prs.add_argument("-seq", dest="seq_len", default=8)
-    prs.add_argument("-GAT", dest="gat", default=True)
+    prs.add_argument("-GAT", dest="gat", default=False)
 
     args = prs.parse_args()
     if test:
@@ -106,6 +106,7 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
         from agent.QMIXagent import Agent
     agents = Agent(args)
 
+    evaluate = True
     max_episode = 150
     start_time = time.time()
     for ep in range(max_episode):
@@ -128,6 +129,16 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
             new_st, gl_s = env.reset()
             agents.reset_st(state=new_st, gl_s=gl_s)
         print(f"ep{ep} cost {time.time() - ep_start}")
+
+        if evaluate and ep == max_episode - 1:
+            new_st, gl_s = env.reset()
+            agents.reset_st(state=new_st, gl_s=gl_s)
+            print("start evaluate:")
+            if args.rnn:
+                agents.init_rnn()
+            env.evaluate(agents=agents)
+            env.close()
+
     if args.save_param:
         agents.save_parameters()
     end_time = time.time()
