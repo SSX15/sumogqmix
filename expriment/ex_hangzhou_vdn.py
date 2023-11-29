@@ -125,17 +125,15 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
             env.save_sim_info()
             env.save_episode_info(agents=agents)
         env.close()
-        if ep != max_episode - 1:
+        if ep != max_episode:
             new_st, gl_s = env.reset()
             agents.reset_st(state=new_st, gl_s=gl_s)
         print(f"ep{ep} cost {time.time() - ep_start}")
 
         if evaluate and ep == max_episode - 1:
-            new_st, gl_s = env.reset()
-            agents.reset_st(state=new_st, gl_s=gl_s)
+            #new_st, gl_s = env.reset()
+            #agents.reset_st(state=new_st, gl_s=gl_s)
             print("start evaluate:")
-            if args.rnn:
-                agents.init_rnn()
             env.evaluate(agents=agents)
             env.close()
 
