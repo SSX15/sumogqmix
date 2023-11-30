@@ -46,7 +46,7 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
     prs.add_argument("-alg", dest="alg", default="idqn")  # "idqn", "vdn", "qmix"
     prs.add_argument("-rnn", dest="rnn", default=False)
     prs.add_argument("-seq", dest="seq_len", default=8)
-    prs.add_argument("-GAT", dest="gat", default=False)
+    prs.add_argument("-GAT", dest="gat", default=True)
 
     args = prs.parse_args()
     if test:
@@ -106,10 +106,10 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
         from agent.QMIXagent import Agent
     agents = Agent(args)
 
-    evaluate = True
+    #evaluate = True
     max_episode = 150
     start_time = time.time()
-    for ep in range(max_episode):
+    for ep in range(max_episode+1):
         print(f"episode: {ep}/{max_episode}")
         ep_start = time.time()
         agents.update_epsilon(episode=ep, max_episode=max_episode)
@@ -117,11 +117,12 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
             agents.init_rnn()
         done = {'__all__': False}
         while not done['__all__']:
-            done = env.rollout(agents=agents)
-            agents.train()
+            done = env.rollout(agents=agents, ep=ep, max_ep=max_episode)
+            if ep < max_episode:
+                agents.train()
         if args.rnn:
             agents.episode_push()
-        if args.file:
+        if args.file and ep != max_episode:
             env.save_sim_info()
             env.save_episode_info(agents=agents)
         env.close()
@@ -130,12 +131,16 @@ def run(test, lr=None, tf=None, bs=None, bas=None, gs=None):
             agents.reset_st(state=new_st, gl_s=gl_s)
         print(f"ep{ep} cost {time.time() - ep_start}")
 
+        '''
         if evaluate and ep == max_episode - 1:
             #new_st, gl_s = env.reset()
             #agents.reset_st(state=new_st, gl_s=gl_s)
             print("start evaluate:")
+            if args.rnn:
+                agents.init_rnn()
             env.evaluate(agents=agents)
             env.close()
+        '''
 
     if args.save_param:
         agents.save_parameters()

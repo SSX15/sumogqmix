@@ -272,14 +272,14 @@ class BaseAgent:
     def init_hidden(self, ep_num):
         return torch.zeros(ep_num, self.n_agent, 64).to(self.device).to(torch.float32)
 
-    def get_gat_state(self):
+    def get_gat_state(self, eval=False):
         gat_state = []
         for (k, v) in self.state.items():
             gat_state.append(v)
         gat_state = np.array(gat_state)
         gat_state = torch.from_numpy(gat_state).to(self.device).to(torch.float32).unsqueeze(0).unsqueeze(0)
         with torch.no_grad():
-            gat_state = self.gat_net(gat_state)
+            gat_state = self.gat_net(gat_state, eval=eval)
         self.gat_state = self.state.copy()
         for i, (k, _) in enumerate(self.gat_state.items()):
             self.gat_state[k] = gat_state[0][0][i]
